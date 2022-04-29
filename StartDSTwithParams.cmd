@@ -149,7 +149,7 @@ if not defined file_not_found (
     call :check_exist "!temp_file_name!"
     if defined file_not_found (
         echo.    %ESC%[93m Пробуем скачать...%ESC%[0m%ESC%[46G : steamcmd.exe
-        curl -s -o c:\steamcmd\steamcmd.zip https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip>nul
+        curl -s -o %DST_steamcmd_dir%\steamcmd.zip https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip>nul
         tar -xf %DST_steamcmd_dir%\steamcmd.zip -C %DST_steamcmd_dir%>nul
         del %DST_steamcmd_dir%\steamcmd.zip>nul
         if not exist "!temp_file_name!" (
