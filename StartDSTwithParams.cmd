@@ -86,7 +86,7 @@ if exist %ServerConfigFile% (
     echo.Пробуем загрузить параметры... & echo.                &REM Trying to load
 ) else (
     echo.Конфигурационный файл ^( %ServerConfigFile% ^) не найден. Останавливаем скрипт... & echo. &REM Configuration file %ServerConfigFile% not found. Exiting...
-    pause & exit
+    pause & exit /b
 )
 
 setlocal EnableDelayedExpansion
@@ -130,7 +130,7 @@ if defined noargs (
     echo.
     echo.%ESC%[41m^Скрипт будет остановлен.%ESC%[0m                       &REM Script will be stopped.
     echo.
-    pause & exit
+    pause & exit /b
 )
 setlocal DisableDelayedExpansion
                                     
@@ -186,7 +186,7 @@ if defined file_not_found (
     echo.
     echo.Не найдены необходимые папки и/или файлы.
     echo.Скрипт будет остановлен.  
-    pause & exit
+    pause & exit /b
 )
 
 
@@ -224,7 +224,7 @@ if defined pids_list (
     set /P AREYOUSURE="Шарды уже запущены! Остановить их? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
     if /I "!AREYOUSURE!" NEQ "Y" (
         echo. & echo.Просто выходим из скрипта  &REM Just exiting
-        exit
+        exit b
     ) else (
         echo.Пытаемся остановить запущенные шарды...   &REM Trying to kill shards
         for %%a in (%pids_list%) do (
@@ -312,7 +312,7 @@ echo.
 echo.Шарды запущены   &REM Shards started
 echo.
 pause
-exit
+exit /b
 
 
 
