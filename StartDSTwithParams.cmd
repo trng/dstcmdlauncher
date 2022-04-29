@@ -32,10 +32,10 @@ exit /b
 REM check file/dir exist
 :check_exist
 if not exist %1 (
-    echo.    %ESC%[41m Каталог/файл не найден %ESC%[0m%ESC%[46G : %1
+    echo.    %ESC%[41m РљР°С‚Р°Р»РѕРі/С„Р°Р№Р» РЅРµ РЅР°Р№РґРµРЅ %ESC%[0m%ESC%[46G : %1
     set file_not_found=TRUE
 ) else (
-    echo.    %ESC%[92m Каталог/файл найден    %ESC%[0m%ESC%[46G : %1
+    echo.    %ESC%[92m РљР°С‚Р°Р»РѕРі/С„Р°Р№Р» РЅР°Р№РґРµРЅ    %ESC%[0m%ESC%[46G : %1
     set file_not_found=
 )
 exit /b
@@ -55,14 +55,14 @@ if %1.==. (
     echo.::  Copyright ^(c^) trng                                                 ::
     echo.::                                                                     ::
     echo.::                                                                     ::
-    echo.::  Скрипт запуска выделенного сервера Don't Starve together.          ::
-    echo.::  Для запуска обязательно наличие конфигурационного файла.           ::
-    echo.::  Имя файла конфигурации указывается в командной строке:             ::
+    echo.::  РЎРєСЂРёРїС‚ Р·Р°РїСѓСЃРєР° РІС‹РґРµР»РµРЅРЅРѕРіРѕ СЃРµСЂРІРµСЂР° Don't Starve together.          ::
+    echo.::  Р”Р»СЏ Р·Р°РїСѓСЃРєР° РѕР±СЏР·Р°С‚РµР»СЊРЅРѕ РЅР°Р»РёС‡РёРµ РєРѕРЅС„РёРіСѓСЂР°С†РёРѕРЅРЅРѕРіРѕ С„Р°Р№Р»Р°.           ::
+    echo.::  РРјСЏ С„Р°Р№Р»Р° РєРѕРЅС„РёРіСѓСЂР°С†РёРё СѓРєР°Р·С‹РІР°РµС‚СЃСЏ РІ РєРѕРјР°РЅРґРЅРѕР№ СЃС‚СЂРѕРєРµ:             ::
     echo.::                                                                     ::
     echo.::      StartDSTwithParams.cmd MyDSTDedicatedServer.conf               ::
     echo.::                                                                     ::
     echo.::                                                                     ::
-    echo.::  При запуске без параметров испольуется дефолтный конфиг:           ::
+    echo.::  РџСЂРё Р·Р°РїСѓСЃРєРµ Р±РµР· РїР°СЂР°РјРµС‚СЂРѕРІ РёСЃРїРѕР»СЊСѓРµС‚СЃСЏ РґРµС„РѕР»С‚РЅС‹Р№ РєРѕРЅС„РёРі:           ::
     echo.::                                                                     ::
     echo.::      StartDSTwithParams.conf                                        ::
     echo.::                                                                     ::
@@ -82,10 +82,10 @@ echo.
 ::  Load parameters from ServerConfigFile into local variables
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 if exist %ServerConfigFile% (
-    echo.Конфигурационный файл найден: %ServerConfigFile%.     &REM Configuration file found
-    echo.Пробуем загрузить параметры... & echo.                &REM Trying to load
+    echo.РљРѕРЅС„РёРіСѓСЂР°С†РёРѕРЅРЅС‹Р№ С„Р°Р№Р» РЅР°Р№РґРµРЅ: %ServerConfigFile%.     &REM Configuration file found
+    echo.РџСЂРѕР±СѓРµРј Р·Р°РіСЂСѓР·РёС‚СЊ РїР°СЂР°РјРµС‚СЂС‹... & echo.                &REM Trying to load
 ) else (
-    echo.Конфигурационный файл ^( %ServerConfigFile% ^) не найден. Останавливаем скрипт... & echo. &REM Configuration file %ServerConfigFile% not found. Exiting...
+    echo.РљРѕРЅС„РёРіСѓСЂР°С†РёРѕРЅРЅС‹Р№ С„Р°Р№Р» ^( %ServerConfigFile% ^) РЅРµ РЅР°Р№РґРµРЅ. РћСЃС‚Р°РЅР°РІР»РёРІР°РµРј СЃРєСЂРёРїС‚... & echo. &REM Configuration file %ServerConfigFile% not found. Exiting...
     pause & exit /b
 )
 
@@ -126,9 +126,9 @@ for %%a in (%mandatory_params%) do (
 
 echo. 
 if defined noargs (
-    echo.%ESC%[41m^Требуются дополнительные параметры: %noargs%%ESC%[0m &REM Additional args needed:
+    echo.%ESC%[41m^РўСЂРµР±СѓСЋС‚СЃСЏ РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РїР°СЂР°РјРµС‚СЂС‹: %noargs%%ESC%[0m &REM Additional args needed:
     echo.
-    echo.%ESC%[41m^Скрипт будет остановлен.%ESC%[0m                       &REM Script will be stopped.
+    echo.%ESC%[41m^РЎРєСЂРёРїС‚ Р±СѓРґРµС‚ РѕСЃС‚Р°РЅРѕРІР»РµРЅ.%ESC%[0m                       &REM Script will be stopped.
     echo.
     pause & exit /b
 )
@@ -140,7 +140,7 @@ setlocal DisableDelayedExpansion
 ::  Check for mandatory folders and files
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-echo.Проверка наличия необходимых файлов...
+echo.РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РЅРµРѕР±С…РѕРґРёРјС‹С… С„Р°Р№Р»РѕРІ...
 setlocal EnableDelayedExpansion
 
 call :check_exist "%DST_steamcmd_dir%"
@@ -148,16 +148,16 @@ if not defined file_not_found (
     set temp_file_name=%DST_steamcmd_dir%\steamcmd.exe
     call :check_exist "!temp_file_name!"
     if defined file_not_found (
-        echo.    %ESC%[93m Пробуем скачать...%ESC%[0m%ESC%[46G : steamcmd.exe
+        echo.    %ESC%[93m РџСЂРѕР±СѓРµРј СЃРєР°С‡Р°С‚СЊ...%ESC%[0m%ESC%[46G : steamcmd.exe
         curl -s -o c:\steamcmd\steamcmd.zip https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip>nul
         tar -xf %DST_steamcmd_dir%\steamcmd.zip -C %DST_steamcmd_dir%>nul
         del %DST_steamcmd_dir%\steamcmd.zip>nul
         if not exist "!temp_file_name!" (
             set file_not_found=TRUE
-            echo.    %ESC%[41m Не удалось скачать %ESC%[0m%ESC%[46G : steamcmd.exe
+            echo.    %ESC%[41m РќРµ СѓРґР°Р»РѕСЃСЊ СЃРєР°С‡Р°С‚СЊ %ESC%[0m%ESC%[46G : steamcmd.exe
         ) else (
             set file_not_found=
-            echo.    %ESC%[92m Удалось скачать    %ESC%[0m%ESC%[46G : steamcmd.exe
+            echo.    %ESC%[92m РЈРґР°Р»РѕСЃСЊ СЃРєР°С‡Р°С‚СЊ    %ESC%[0m%ESC%[46G : steamcmd.exe
         )
     ) 
 )
@@ -184,8 +184,8 @@ for %%a in (%DST_shards%) do (
 
 if defined file_not_found (
     echo.
-    echo.Не найдены необходимые папки и/или файлы.
-    echo.Скрипт будет остановлен.  
+    echo.РќРµ РЅР°Р№РґРµРЅС‹ РЅРµРѕР±С…РѕРґРёРјС‹Рµ РїР°РїРєРё Рё/РёР»Рё С„Р°Р№Р»С‹.
+    echo.РЎРєСЂРёРїС‚ Р±СѓРґРµС‚ РѕСЃС‚Р°РЅРѕРІР»РµРЅ.  
     pause & exit /b
 )
 
@@ -212,8 +212,8 @@ for %%a in (%DST_shards%) do (
 
 if defined pids_list (
     echo.
-    echo.%ESC%[41m ------         ВНИМАНИЕ ^^!^^!^^!        ------ %ESC%[0m    &REM WARNING
-    echo.%ESC%[41m ------   Найдены запущенные шарды  ------ %ESC%[0m          &REM Running shards found  
+    echo.%ESC%[41m ------         Р’РќРРњРђРќРР• ^^!^^!^^!        ------ %ESC%[0m    &REM WARNING
+    echo.%ESC%[41m ------   РќР°Р№РґРµРЅС‹ Р·Р°РїСѓС‰РµРЅРЅС‹Рµ С€Р°СЂРґС‹  ------ %ESC%[0m          &REM Running shards found  
     echo.
     for %%a in (%pids_list%) do (
         echo %%a: !%%a!
@@ -221,16 +221,16 @@ if defined pids_list (
     )
     echo.
     REM set /P AREYOUSURE="Kill running shards (if "NO" script will exit immediately) Y/[N] ?"
-    set /P AREYOUSURE="Шарды уже запущены! Остановить их? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
+    set /P AREYOUSURE="РЁР°СЂРґС‹ СѓР¶Рµ Р·Р°РїСѓС‰РµРЅС‹! РћСЃС‚Р°РЅРѕРІРёС‚СЊ РёС…? (Р•СЃР»Рё "РќР•Рў", С‚Рѕ РїСЂРѕСЃС‚Рѕ РІС‹С…РѕРґРёРј РёР· СЃРєСЂРёРїС‚Р°) Y/[N]? "
     if /I "!AREYOUSURE!" NEQ "Y" (
-        echo. & echo.Просто выходим из скрипта  &REM Just exiting
-        exit b
+        echo. & echo.РџСЂРѕСЃС‚Рѕ РІС‹С…РѕРґРёРј РёР· СЃРєСЂРёРїС‚Р°  &REM Just exiting
+        exit /b
     ) else (
-        echo.Пытаемся остановить запущенные шарды...   &REM Trying to kill shards
+        echo.РџС‹С‚Р°РµРјСЃСЏ РѕСЃС‚Р°РЅРѕРІРёС‚СЊ Р·Р°РїСѓС‰РµРЅРЅС‹Рµ С€Р°СЂРґС‹...   &REM Trying to kill shards
         for %%a in (%pids_list%) do (
             taskkill /PID %%a
         )
-        echo. & echo.Шарды остановлены. Можно запускать снова & echo. &REM Shards killed. Time to start new ones
+        echo. & echo.РЁР°СЂРґС‹ РѕСЃС‚Р°РЅРѕРІР»РµРЅС‹. РњРѕР¶РЅРѕ Р·Р°РїСѓСЃРєР°С‚СЊ СЃРЅРѕРІР° & echo. &REM Shards killed. Time to start new ones
         pause
     )
 )
@@ -309,7 +309,7 @@ for %%a in (%DST_shards%) do (
 setlocal DisableDelayedExpansion
 
 echo.
-echo.Шарды запущены   &REM Shards started
+echo.РЁР°СЂРґС‹ Р·Р°РїСѓС‰РµРЅС‹   &REM Shards started
 echo.
 pause
 exit /b
