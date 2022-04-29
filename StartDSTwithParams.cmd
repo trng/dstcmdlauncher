@@ -85,7 +85,7 @@ if exist %ServerConfigFile% (
     echo.Конфигурационный файл найден: %ServerConfigFile%.     &REM Configuration file found
     echo.Пробуем загрузить параметры... & echo.                &REM Trying to load
 ) else (
-    echo.Конфигурационный файл ^( %ServerConfigFile% ^) не найден. Останавливаем скрипт... & echo. &REM Configuration file %ServerConfigFile% not found. Exiting...
+    echo.%ESC%[41mКонфигурационный файл ^( %ServerConfigFile% ^) не найден. Останавливаем скрипт... %ESC%[0m& echo. &REM Configuration file %ServerConfigFile% not found. Exiting...
     pause & exit /b
 )
 
