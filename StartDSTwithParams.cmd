@@ -244,7 +244,7 @@ setlocal DisableDelayedExpansion
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-REM %DST_steamcmd_dir%\steamcmd.exe +login anonymous +app_update 343050 validate +quit
+%DST_steamcmd_dir%\steamcmd.exe +login anonymous +app_update 343050 validate +quit
 
 
 
@@ -296,7 +296,7 @@ for %%a in (%DST_shards%) do (
             echo X coord not defined
         )
     )
-    set console_title_runtime=!CLUSTER_FULL_PATH!\!DST_shard!   Started  !HH!:!MM!:!SS!  %DATE%  ---
+    set console_title_runtime=---   !CLUSTER_FULL_PATH!\!DST_shard!   ---   Started  !HH!:!MM!:!SS!  %DATE%   ---
     start "!HKCU_Console_Key!" cmd /C ^
         "title !console_title_runtime! " ^
         "& dontstarve_dedicated_server_nullrenderer_x64 " ^
