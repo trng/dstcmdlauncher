@@ -2,6 +2,8 @@
 
 chcp 1251 > nul     &REM Non-latin strings encoding
 
+REM See :NewConsole label below
+if "%1" == "/goto" goto :%2
 
 :: chr(09) to %TAB% (for ltrim | rtrim in :Trim)
 :: chr(27) to %ESC% (for echo coloring)
@@ -36,7 +38,6 @@ if not exist %1 (
     set file_not_found=TRUE
 ) else (
     echo.    %ESC%[92m Каталог/файл найден    %ESC%[0m%ESC%[46G : %1
-    set file_not_found=
 )
 exit /b
 
@@ -141,6 +142,7 @@ setlocal DisableDelayedExpansion
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 echo.Проверка наличия необходимых файлов...
+set file_not_found=
 setlocal EnableDelayedExpansion
 
 call :check_exist "%DST_steamcmd_dir%"
@@ -168,18 +170,18 @@ call :check_exist "%DST_persistent_storage_root%\%DST_conf_dir%"
 
 call :check_exist "%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster%"
 
-call :check_exist "%DST_persistent_storage_root%\%DST_my_mods%\%DST_cluster%"
+REM call :check_exist "%DST_persistent_storage_root%\%DST_my_mods%\%DST_cluster%"
 
 set mods_setup_lua="%DST_persistent_storage_root%\%DST_my_mods%\%DST_cluster%\dedicated_server_mods_setup.lua"
-call :check_exist %mods_setup_lua%
+REM call :check_exist %mods_setup_lua%
 
 set mod_overrides_lua="%DST_persistent_storage_root%\%DST_my_mods%\%DST_cluster%\modoverrides.lua"
-call :check_exist %mod_overrides_lua%
+REM call :check_exist %mod_overrides_lua%
 
 set master_shard=
 for %%a in (%DST_shards%) do (
     call :check_exist "%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster%\%%a"
-    if not defined master_shard (set master_shard=%%a)
+    if not defined master_shard (set master_shard=%%a) &REM first shard is master shard
 )
 
 if defined file_not_found (
@@ -191,7 +193,7 @@ if defined file_not_found (
 
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-::  Shard's Loop
+::  Shard's Loop (search running shards)
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 REM find existing
@@ -244,6 +246,10 @@ setlocal DisableDelayedExpansion
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+start "Start steamcmd.exe. Load/update/validate DST application." cmd /c "%0" /goto NewConsole
+exit
+
+:NewConsole
 %DST_steamcmd_dir%\steamcmd.exe +login anonymous +app_update 343050 validate +quit
 
 
@@ -313,9 +319,6 @@ echo.Шарды запущены   &REM Shards started
 echo.
 pause
 exit /b
-
-
-
 
 
 
