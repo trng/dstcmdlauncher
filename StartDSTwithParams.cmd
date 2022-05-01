@@ -107,7 +107,7 @@ setlocal DisableDelayedExpansion
 ::  Checking if all required parameters are present in config file
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-set mandatory_params=DST_steamcmd_dir DST_dst_bin DST_persistent_storage_root DST_conf_dir DST_cluster DST_shards DST_my_mods
+set mandatory_params=DST_steamcmd_dir DST_dst_bin DST_exe DST_persistent_storage_root DST_conf_dir DST_cluster DST_shards DST_my_mods
 
 setlocal EnableDelayedExpansion
 
@@ -163,6 +163,8 @@ if not defined file_not_found (
         )
     ) 
 )
+
+call :check_exist "%DST_steamcmd_dir%\%DST_dst_bin%\%DST_exe%"
 
 call :check_exist "%DST_persistent_storage_root%"
 
@@ -246,7 +248,7 @@ setlocal DisableDelayedExpansion
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-start "Start steamcmd.exe. Load/update/validate DST application." cmd /c "%0" /goto NewConsole
+start "Start steamcmd for load/update/validate DST dedicated server application." cmd /c "%0" /goto NewConsole
 exit
 
 :NewConsole
@@ -262,6 +264,7 @@ exit
 
 cd /D %DST_steamcmd_dir%/%DST_dst_bin%
 
+REM Copy 2 mods files to cluster and dst bin
 copy %mods_setup_lua% ..\mods\
 copy %mod_overrides_lua%  "%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster%\%master_shard%\"  
 
@@ -269,9 +272,6 @@ copy %mod_overrides_lua%  "%DST_persistent_storage_root%\%DST_conf_dir%\%DST_clu
 setlocal EnableDelayedExpansion
 for %%a in (%DST_shards%) do (
     set DST_shard=%%a
-    rem start StartDSTshard.cmd %DST_shard%
-    rem start dontstarve_dedicated_server_nullrenderer_x64 -console -cluster MyDediServer -shard Master
-
     set HH=%TIME: =0%
     set HH=!HH:~0,2!
     set MM=!TIME:~3,2!
@@ -305,20 +305,12 @@ for %%a in (%DST_shards%) do (
     set console_title_runtime=---   !CLUSTER_FULL_PATH!\!DST_shard!   ---   Started  !HH!:!MM!:!SS!  %DATE%   ---
     start "!HKCU_Console_Key!" cmd /C ^
         "title !console_title_runtime! " ^
-        "& dontstarve_dedicated_server_nullrenderer_x64 " ^
-            "-console " ^
+        "& %DST_exe% " ^
             "-persistent_storage_root %DST_persistent_storage_root% " ^
             "-conf_dir %DST_conf_dir% " ^
             "-cluster %DST_cluster%  " ^
             "-shard !DST_shard! ""
+            :: -console has been deprecated Use the [MISC] / console_enabled setting instead. "-console " ^
 )
 setlocal DisableDelayedExpansion
-
-echo.
-echo.Шарды запущены   &REM Shards started
-echo.
-pause
-exit /b
-
-
 
