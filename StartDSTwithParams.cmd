@@ -67,6 +67,14 @@ if exist "%ServerConfigFile%" (
         exit /b
     ) else (
         echo.    %ESC%[93m Пробуем содать...%ESC%[0m%ESC%[46G : "%ServerConfigFile%"
+:Get_Cluster_Name_again
+        set /p cluster_name="Cluster Name: "
+        if not defined cluster_name (
+            echo.    %ESC%[93mИмя кластера не может быть пустым. Попробуйте еще раз либо Ctrl-C для выхода...%ESC%[0m
+            goto :Get_Cluster_Name_again
+            pause & exit
+        )
+        set cluster_folder=!cluster_name: =_!
         call :Generate_Config "%ServerConfigFile%"
         call :check_exist "%ServerConfigFile%"
         if defined check_exist_notfoud (
@@ -95,7 +103,7 @@ setlocal DisableDelayedExpansion
 ::  Checking if all required parameters are present in config file
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-set mandatory_params=DST_steamcmd_dir DST_dst_bin DST_exe DST_persistent_storage_root DST_conf_dir DST_cluster DST_shards DST_my_mods
+set mandatory_params=DST_steamcmd_dir DST_dst_bin DST_exe DST_persistent_storage_root DST_conf_dir DST_cluster_folder DST_shards DST_my_mods
 
 setlocal EnableDelayedExpansion
 
@@ -155,7 +163,7 @@ set temp_file_name=%DST_steamcmd_dir%\steamcmd.exe
 call :check_exist "!temp_file_name!"
 if defined check_exist_notfoud (
     echo.    %ESC%[93m Пробуем скачать...%ESC%[0m%ESC%[46G : steamcmd.exe
-    curl -s -o %DST_steamcmd_dir%\steamcmd.zip https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip>nul
+    curl -L -s -o %DST_steamcmd_dir%\steamcmd.zip https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip>nul
     tar -xf %DST_steamcmd_dir%\steamcmd.zip -C %DST_steamcmd_dir%>nul
     del %DST_steamcmd_dir%\steamcmd.zip>nul
     if not exist "!temp_file_name!" (
@@ -168,42 +176,25 @@ if defined check_exist_notfoud (
 )
 
 
-call :check_exist "%DST_persistent_storage_root%"
-if defined check_exist_notfoud (
-    echo.    %ESC%[93m Пробуем содать...%ESC%[0m%ESC%[46G : %ServerConfigFile%
-    mkdir "%DST_persistent_storage_root%"
-    call :check_exist "%DST_persistent_storage_root%"
-    if defined check_exist_notfoud (
-        echo.Невозможно создать папку "%DST_persistent_storage_root%". Продолжение невозможно.
-        pause & exit
-    )
-)
+call :check_and_create_folder "%DST_persistent_storage_root%"
 
-set temp_fname="%DST_persistent_storage_root%\%DST_conf_dir%"
-call :check_exist %temp_fname%
-if defined check_exist_notfoud (
-    echo.    %ESC%[93m Пробуем содать...%ESC%[0m%ESC%[46G : %ServerConfigFile%
-    mkdir %temp_fname%
-    call :check_exist %temp_fname%
-    if defined check_exist_notfoud (
-        echo.Невозможно создать папку %temp_fname%. Продолжение невозможно.
-        pause & exit
-    )
-)
+call :check_and_create_folder "%DST_persistent_storage_root%\%DST_conf_dir%"
 
-call :check_exist "%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster%"
+call :check_and_create_folder "%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster_folder%"
 
-REM call :check_exist "%DST_persistent_storage_root%\%DST_my_mods%\%DST_cluster%"
+call :check_and_create_folder "%DST_persistent_storage_root%\%DST_my_mods%\%DST_cluster_folder%"
 
-set mods_setup_lua="%DST_persistent_storage_root%\%DST_my_mods%\%DST_cluster%\dedicated_server_mods_setup.lua"
+
+
+set mods_setup_lua="%DST_persistent_storage_root%\%DST_my_mods%\%DST_cluster_folder%\dedicated_server_mods_setup.lua"
 REM call :check_exist %mods_setup_lua%
 
-set mod_overrides_lua="%DST_persistent_storage_root%\%DST_my_mods%\%DST_cluster%\modoverrides.lua"
+set mod_overrides_lua="%DST_persistent_storage_root%\%DST_my_mods%\%DST_cluster_folder%\modoverrides.lua"
 REM call :check_exist %mod_overrides_lua%
 
 set master_shard=
 for %%a in (%DST_shards%) do (
-    call :check_exist "%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster%\%%a"
+    call :check_exist "%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster_folder%\%%a"
     if not defined master_shard (set master_shard=%%a) &REM first shard is master shard
 )
 
@@ -222,7 +213,7 @@ if defined file_not_found (
 REM find existing
 echo.
 setlocal EnableDelayedExpansion
-set CLUSTER_FULL_PATH=!DST_persistent_storage_root!\!DST_conf_dir!\!DST_cluster!
+set CLUSTER_FULL_PATH=!DST_persistent_storage_root!\!DST_conf_dir!\!DST_cluster_folder!
 for %%a in (%DST_shards%) do (
     set DST_shard=%%a
     set shard_title=!CLUSTER_FULL_PATH!\!DST_shard!
@@ -302,7 +293,7 @@ cd /D %DST_steamcmd_dir%/%DST_dst_bin%
 
 REM Copy 2 mods files to cluster and dst bin
 copy %mods_setup_lua% ..\mods\
-copy %mod_overrides_lua%  "%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster%\%master_shard%\"  
+copy %mod_overrides_lua%  "%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster_folder%\%master_shard%\"  
 
 
 setlocal EnableDelayedExpansion
@@ -312,7 +303,7 @@ for %%a in (%DST_shards%) do (
     set HH=!HH:~0,2!
     set MM=!TIME:~3,2!
     set SS=!TIME:~6,2!
-    set HKCU_Console_Key=!DST_cluster!_!DST_shard!
+    set HKCU_Console_Key=!DST_cluster_folder!_!DST_shard!
     if defined HKCU_Console_Key reg delete "hkcu\console\!HKCU_Console_Key!" /f > nul
     if defined %%a (
         for /F "tokens=1-2" %%X in ("!%%a!") do (
@@ -343,7 +334,7 @@ for %%a in (%DST_shards%) do (
         "& %DST_exe% " ^
             "-persistent_storage_root %DST_persistent_storage_root% " ^
             "-conf_dir %DST_conf_dir% " ^
-            "-cluster %DST_cluster%  " ^
+            "-cluster %DST_cluster_folder%  " ^
             "-shard !DST_shard! ""
 )
 REM            :: -console has been deprecated Use the [MISC] / console_enabled setting instead. "-console " ^
@@ -374,6 +365,7 @@ REM ltrim and rtrim whitespaces
 
 
 REM check file/dir exist
+REM Mandatory param - folder or file name
 :check_exist
 set check_exist_notfoud=
 if not exist %1 (
@@ -383,6 +375,23 @@ if not exist %1 (
     echo.    %ESC%[92m Каталог/файл найден    %ESC%[0m%ESC%[46G : %1
 )
 exit /b
+
+
+REM Check if folder exsit. Try create non-existing folder. Exit from main script on error
+REM Mandatory param - folder name
+:check_and_create_folder
+call :check_exist %1
+if defined check_exist_notfoud (
+    echo.   %ESC%[93m Пробуем содать...%ESC%[0m%ESC%[46G : %1
+    mkdir "%1"
+    call :check_exist %1
+    if defined check_exist_notfoud (
+        echo.    Невозможно создать папку %1. Продолжение невозможно.
+        pause & exit
+    )
+)
+exit /b
+
 
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -408,7 +417,6 @@ exit /b
 REM Mandatory param - config name
 :Generate_Config
 setlocal EnableDelayedExpansion
-set VAR=MyDediServer
 (echo ^
 [                                                                                             ]^
 
@@ -442,7 +450,7 @@ DST_persistent_storage_root  	= !USERPROFILE!\KleiDedicated^
 
 DST_conf_dir                 	= DoNotStarveTogether^
 
-DST_cluster                  	= %VAR%^
+DST_cluster_folder             	= %cluster_folder%^
 
 ^
 
@@ -472,7 +480,7 @@ DST_shards                      = Master Caves^
 
 [   1. dedicated_server_mods_setup.lua, 2. modoverrides.lua                                   ]^
 
-[   This 2 files must be inside   %%DST_persistent_storage_root%%/%%MyMods%%/%%DST_cluster%%        ]^
+[   This 2 files must be inside   %%DST_persistent_storage_root%%/%%MyMods%%/%%DST_cluster_folder%% ]^
 
 DST_my_mods                     = MyMods^
 
