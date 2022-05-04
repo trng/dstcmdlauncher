@@ -1,1 +1,2 @@
-*.cmd text working-tree-encoding=CP1251 eol=CRLF
+*.cmd -text
+*.conf -text

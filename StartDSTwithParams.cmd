@@ -17,35 +17,7 @@ set TAB=%SPECHAR:~0,1%
 set ESC=%SPECHAR:~1,1%
 
 
-
-goto Main
-
-REM ltrim and rtrim whitespaces
-:Trim
-:ltrim
-if "!%1:~0,1!"==" " (set %1=!%1:~1!&goto ltrim)
-if "!%1:~0,1!"=="%TAB%" (set %1=!%1:~1!&goto ltrim)
-:rtrim
-if "!%1:~-1!"==" " (set %1=!%1:~0,-1!&goto rtrim)
-if "!%1:~-1!"=="%TAB%" (set %1=!%1:~0,-1!&goto rtrim)
-exit /b
-
-
-REM check file/dir exist
-:check_exist
-if not exist %1 (
-    echo.    %ESC%[41m РљР°С‚Р°Р»РѕРі/С„Р°Р№Р» РЅРµ РЅР°Р№РґРµРЅ %ESC%[0m%ESC%[46G : %1
-    set file_not_found=TRUE
-) else (
-    echo.    %ESC%[92m РљР°С‚Р°Р»РѕРі/С„Р°Р№Р» РЅР°Р№РґРµРЅ    %ESC%[0m%ESC%[46G : %1
-)
-exit /b
-
-
-
-:Main
-
-set ServerConfigFile=StartDSTwithParams.conf
+set ServerConfigFile=%cd%\StartDSTwithParams.conf
 
 if %1.==. (
     echo.
@@ -56,20 +28,22 @@ if %1.==. (
     echo.::  Copyright ^(c^) trng                                                 ::
     echo.::                                                                     ::
     echo.::                                                                     ::
-    echo.::  РЎРєСЂРёРїС‚ Р·Р°РїСѓСЃРєР° РІС‹РґРµР»РµРЅРЅРѕРіРѕ СЃРµСЂРІРµСЂР° Don't Starve together.          ::
-    echo.::  Р”Р»СЏ Р·Р°РїСѓСЃРєР° РѕР±СЏР·Р°С‚РµР»СЊРЅРѕ РЅР°Р»РёС‡РёРµ РєРѕРЅС„РёРіСѓСЂР°С†РёРѕРЅРЅРѕРіРѕ С„Р°Р№Р»Р°.           ::
-    echo.::  РРјСЏ С„Р°Р№Р»Р° РєРѕРЅС„РёРіСѓСЂР°С†РёРё СѓРєР°Р·С‹РІР°РµС‚СЃСЏ РІ РєРѕРјР°РЅРґРЅРѕР№ СЃС‚СЂРѕРєРµ:             ::
+    echo.::  Скрипт запуска выделенного сервера Don't Starve together.          ::
+    echo.::  Для запуска обязательно наличие конфигурационного файла.           ::
+    echo.::  Имя файла конфигурации указывается в командной строке:             ::
     echo.::                                                                     ::
     echo.::      StartDSTwithParams.cmd MyDSTDedicatedServer.conf               ::
     echo.::                                                                     ::
     echo.::                                                                     ::
-    echo.::  РџСЂРё Р·Р°РїСѓСЃРєРµ Р±РµР· РїР°СЂР°РјРµС‚СЂРѕРІ РёСЃРїРѕР»СЊСѓРµС‚СЃСЏ РґРµС„РѕР»С‚РЅС‹Р№ РєРѕРЅС„РёРі:           ::
+    echo.::  При запуске без параметров генерируется/используется               ::
+    echo.::  дефолтный конфиг ^(в текущей папке^):                                ::
     echo.::                                                                     ::
     echo.::      StartDSTwithParams.conf                                        ::
     echo.::                                                                     ::
     echo.::                                                                     ::
     echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    timeout 20
 ) else (
     echo.::::::::::::::::::::::::::::::::
     echo.::  StartDSTwithParams v.1.0  ::
@@ -82,15 +56,29 @@ echo.
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::  Load parameters from ServerConfigFile into local variables
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-if exist %ServerConfigFile% (
-    echo.РљРѕРЅС„РёРіСѓСЂР°С†РёРѕРЅРЅС‹Р№ С„Р°Р№Р» РЅР°Р№РґРµРЅ: %ServerConfigFile%.     &REM Configuration file found
-    echo.РџСЂРѕР±СѓРµРј Р·Р°РіСЂСѓР·РёС‚СЊ РїР°СЂР°РјРµС‚СЂС‹... & echo.                &REM Trying to load
+setlocal EnableDelayedExpansion
+if exist "%ServerConfigFile%" (
+    echo.Конфигурационный файл найден: %ServerConfigFile%.     &REM Configuration file found
 ) else (
-    echo.%ESC%[41mРљРѕРЅС„РёРіСѓСЂР°С†РёРѕРЅРЅС‹Р№ С„Р°Р№Р» ^( %ServerConfigFile% ^) РЅРµ РЅР°Р№РґРµРЅ. РћСЃС‚Р°РЅР°РІР»РёРІР°РµРј СЃРєСЂРёРїС‚... %ESC%[0m& echo. &REM Configuration file %ServerConfigFile% not found. Exiting...
-    pause & exit /b
+    echo.%ESC%[41mКонфигурационный файл ^( %ServerConfigFile% ^) не найден.%ESC%[0m
+    set /P AREYOUSURE="Создать с параметрами по умолчанию? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
+    if /I "!AREYOUSURE!" NEQ "Y" (
+        echo. & echo.    Просто выходим из скрипта  &REM Just exiting
+        exit /b
+    ) else (
+        echo.    %ESC%[93m Пробуем содать...%ESC%[0m%ESC%[46G : "%ServerConfigFile%"
+        call :Generate_Config "%ServerConfigFile%"
+        call :check_exist "%ServerConfigFile%"
+        if defined check_exist_notfoud (
+            echo.Невозможно создать конфигурационный файл "%ServerConfigFile%".
+            echo.Выходим из скрипта.
+            pause & exit
+        )
+    )
 )
 
-setlocal EnableDelayedExpansion
+echo. & echo.Пробуем загрузить параметры...                &REM Trying to load
+
 for /f "delims== tokens=1,2 eol=[" %%a in (%ServerConfigFile%) do (
     :: ltrim/rtrim spaces from parameter name and value
     set keyname=%%a
@@ -127,9 +115,9 @@ for %%a in (%mandatory_params%) do (
 
 echo. 
 if defined noargs (
-    echo.%ESC%[41m^РўСЂРµР±СѓСЋС‚СЃСЏ РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РїР°СЂР°РјРµС‚СЂС‹: %noargs%%ESC%[0m &REM Additional args needed:
+    echo.%ESC%[41m^Требуются дополнительные параметры: %noargs%%ESC%[0m &REM Additional args needed:
     echo.
-    echo.%ESC%[41m^РЎРєСЂРёРїС‚ Р±СѓРґРµС‚ РѕСЃС‚Р°РЅРѕРІР»РµРЅ.%ESC%[0m                       &REM Script will be stopped.
+    echo.%ESC%[41m^Скрипт будет остановлен.%ESC%[0m                       &REM Script will be stopped.
     echo.
     pause & exit /b
 )
@@ -141,34 +129,67 @@ setlocal DisableDelayedExpansion
 ::  Check for mandatory folders and files
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-echo.РџСЂРѕРІРµСЂРєР° РЅР°Р»РёС‡РёСЏ РЅРµРѕР±С…РѕРґРёРјС‹С… С„Р°Р№Р»РѕРІ...
+echo.Проверка наличия необходимых файлов...
 set file_not_found=
 setlocal EnableDelayedExpansion
 
 call :check_exist "%DST_steamcmd_dir%"
-if not defined file_not_found (
-    set temp_file_name=%DST_steamcmd_dir%\steamcmd.exe
-    call :check_exist "!temp_file_name!"
-    if defined file_not_found (
-        echo.    %ESC%[93m РџСЂРѕР±СѓРµРј СЃРєР°С‡Р°С‚СЊ...%ESC%[0m%ESC%[46G : steamcmd.exe
-        curl -s -o %DST_steamcmd_dir%\steamcmd.zip https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip>nul
-        tar -xf %DST_steamcmd_dir%\steamcmd.zip -C %DST_steamcmd_dir%>nul
-        del %DST_steamcmd_dir%\steamcmd.zip>nul
-        if not exist "!temp_file_name!" (
-            set file_not_found=TRUE
-            echo.    %ESC%[41m РќРµ СѓРґР°Р»РѕСЃСЊ СЃРєР°С‡Р°С‚СЊ %ESC%[0m%ESC%[46G : steamcmd.exe
-        ) else (
-            set file_not_found=
-            echo.    %ESC%[92m РЈРґР°Р»РѕСЃСЊ СЃРєР°С‡Р°С‚СЊ    %ESC%[0m%ESC%[46G : steamcmd.exe
+if defined check_exist_notfoud (
+    set /P AREYOUSURE="  %ESC%[93m Создать "%DST_steamcmd_dir%"? (Если "НЕТ", то просто выходим из скрипта) Y/[N]?%ESC%[0m "
+    if /I "!AREYOUSURE!" NEQ "Y" (
+        echo. & echo.    Просто выходим из скрипта  &REM Just exiting
+        exit /b
+    ) else (
+        echo.    %ESC%[93m Пробуем содать...%ESC%[0m%ESC%[46G : "%DST_steamcmd_dir%"
+        mkdir %DST_steamcmd_dir%
+        call :check_exist "%DST_steamcmd_dir%"
+        if defined check_exist_notfoud (
+            echo.Невозможно создать папку "%DST_steamcmd_dir%".
+            echo.Выходим из скрипта.
+            pause & exit
         )
-    ) 
+    )
 )
 
-call :check_exist "%DST_steamcmd_dir%\%DST_dst_bin%\%DST_exe%"
+set temp_file_name=%DST_steamcmd_dir%\steamcmd.exe
+call :check_exist "!temp_file_name!"
+if defined check_exist_notfoud (
+    echo.    %ESC%[93m Пробуем скачать...%ESC%[0m%ESC%[46G : steamcmd.exe
+    curl -s -o %DST_steamcmd_dir%\steamcmd.zip https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip>nul
+    tar -xf %DST_steamcmd_dir%\steamcmd.zip -C %DST_steamcmd_dir%>nul
+    del %DST_steamcmd_dir%\steamcmd.zip>nul
+    if not exist "!temp_file_name!" (
+        set file_not_found=TRUE
+        echo.    %ESC%[41m Не удалось скачать %ESC%[0m%ESC%[46G : steamcmd.exe
+    ) else (
+        set file_not_found=
+        echo.    %ESC%[92m Удалось скачать    %ESC%[0m%ESC%[46G : steamcmd.exe
+    )
+)
+
 
 call :check_exist "%DST_persistent_storage_root%"
+if defined check_exist_notfoud (
+    echo.    %ESC%[93m Пробуем содать...%ESC%[0m%ESC%[46G : %ServerConfigFile%
+    mkdir "%DST_persistent_storage_root%"
+    call :check_exist "%DST_persistent_storage_root%"
+    if defined check_exist_notfoud (
+        echo.Невозможно создать папку "%DST_persistent_storage_root%". Продолжение невозможно.
+        pause & exit
+    )
+)
 
-call :check_exist "%DST_persistent_storage_root%\%DST_conf_dir%"
+set temp_fname="%DST_persistent_storage_root%\%DST_conf_dir%"
+call :check_exist %temp_fname%
+if defined check_exist_notfoud (
+    echo.    %ESC%[93m Пробуем содать...%ESC%[0m%ESC%[46G : %ServerConfigFile%
+    mkdir %temp_fname%
+    call :check_exist %temp_fname%
+    if defined check_exist_notfoud (
+        echo.Невозможно создать папку %temp_fname%. Продолжение невозможно.
+        pause & exit
+    )
+)
 
 call :check_exist "%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster%"
 
@@ -188,8 +209,8 @@ for %%a in (%DST_shards%) do (
 
 if defined file_not_found (
     echo.
-    echo.РќРµ РЅР°Р№РґРµРЅС‹ РЅРµРѕР±С…РѕРґРёРјС‹Рµ РїР°РїРєРё Рё/РёР»Рё С„Р°Р№Р»С‹.
-    echo.РЎРєСЂРёРїС‚ Р±СѓРґРµС‚ РѕСЃС‚Р°РЅРѕРІР»РµРЅ.  
+    echo.Не найдены необходимые папки и/или файлы.
+    echo.Скрипт будет остановлен.  
     pause & exit /b
 )
 
@@ -216,8 +237,8 @@ for %%a in (%DST_shards%) do (
 
 if defined pids_list (
     echo.
-    echo.%ESC%[41m ------         Р’РќРРњРђРќРР• ^^!^^!^^!        ------ %ESC%[0m    &REM WARNING
-    echo.%ESC%[41m ------   РќР°Р№РґРµРЅС‹ Р·Р°РїСѓС‰РµРЅРЅС‹Рµ С€Р°СЂРґС‹  ------ %ESC%[0m          &REM Running shards found  
+    echo.%ESC%[41m ------         ВНИМАНИЕ ^^!^^!^^!        ------ %ESC%[0m    &REM WARNING
+    echo.%ESC%[41m ------   Найдены запущенные шарды  ------ %ESC%[0m          &REM Running shards found  
     echo.
     for %%a in (%pids_list%) do (
         echo %%a: !%%a!
@@ -225,16 +246,16 @@ if defined pids_list (
     )
     echo.
     REM set /P AREYOUSURE="Kill running shards (if "NO" script will exit immediately) Y/[N] ?"
-    set /P AREYOUSURE="РЁР°СЂРґС‹ СѓР¶Рµ Р·Р°РїСѓС‰РµРЅС‹! РћСЃС‚Р°РЅРѕРІРёС‚СЊ РёС…? (Р•СЃР»Рё "РќР•Рў", С‚Рѕ РїСЂРѕСЃС‚Рѕ РІС‹С…РѕРґРёРј РёР· СЃРєСЂРёРїС‚Р°) Y/[N]? "
+    set /P AREYOUSURE="Шарды уже запущены! Остановить их? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
     if /I "!AREYOUSURE!" NEQ "Y" (
-        echo. & echo.РџСЂРѕСЃС‚Рѕ РІС‹С…РѕРґРёРј РёР· СЃРєСЂРёРїС‚Р°  &REM Just exiting
+        echo. & echo.Просто выходим из скрипта  &REM Just exiting
         exit /b
     ) else (
-        echo.РџС‹С‚Р°РµРјСЃСЏ РѕСЃС‚Р°РЅРѕРІРёС‚СЊ Р·Р°РїСѓС‰РµРЅРЅС‹Рµ С€Р°СЂРґС‹...   &REM Trying to kill shards
+        echo.Пытаемся остановить запущенные шарды...   &REM Trying to kill shards
         for %%a in (%pids_list%) do (
             taskkill /PID %%a
         )
-        echo. & echo.РЁР°СЂРґС‹ РѕСЃС‚Р°РЅРѕРІР»РµРЅС‹. РњРѕР¶РЅРѕ Р·Р°РїСѓСЃРєР°С‚СЊ СЃРЅРѕРІР° & echo. &REM Shards killed. Time to start new ones
+        echo. & echo.Шарды остановлены. Можно запускать снова & echo. &REM Shards killed. Time to start new ones
         pause
     )
 )
@@ -249,11 +270,26 @@ setlocal DisableDelayedExpansion
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 start "Start steamcmd for load/update/validate DST dedicated server application." cmd /c "%0" /goto NewConsole
+timeout 15
 exit
 
 :NewConsole
-%DST_steamcmd_dir%\steamcmd.exe +login anonymous +app_update 343050 validate +quit
-
+echo.
+echo.
+echo.Start steamcmd for load/update/validate DST dedicated server application.
+echo.
+echo.
+echo.Press any key to skip load/update/validate game and mods
+echo.^(you will be jumped to shard's load^).
+echo.
+echo.%ESC%[93mWarning! Only do this if you are absolutely sure what you are doing!%ESC%[0m
+echo.
+echo.
+call :timeout_with_keypress_detect 15
+if not defined key_pressed (
+    echo %DST_steamcmd_dir%
+    %DST_steamcmd_dir%\steamcmd.exe +login anonymous +app_update 343050 validate +quit
+)
 
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -291,7 +327,6 @@ for %%a in (%DST_shards%) do (
                 if not defined var set ypos=%%Y
             )
         )
-
         if defined xpos (if defined ypos (
                 set /a "pos=(!ypos! << 16) + !xpos!"
                 reg add "hkcu\console\!HKCU_Console_Key!" /v WindowPosition /t REG_DWORD /d "!pos!" /f
@@ -310,7 +345,152 @@ for %%a in (%DST_shards%) do (
             "-conf_dir %DST_conf_dir% " ^
             "-cluster %DST_cluster%  " ^
             "-shard !DST_shard! ""
-            :: -console has been deprecated Use the [MISC] / console_enabled setting instead. "-console " ^
 )
+REM            :: -console has been deprecated Use the [MISC] / console_enabled setting instead. "-console " ^
 setlocal DisableDelayedExpansion
 
+timeout 25
+exit
+
+
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+::
+::
+:: FUNCTIONS
+::
+::
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+
+REM ltrim and rtrim whitespaces
+:Trim
+    :ltrim
+    if "!%1:~0,1!"==" " (set %1=!%1:~1!&goto ltrim)
+    if "!%1:~0,1!"=="%TAB%" (set %1=!%1:~1!&goto ltrim)
+    :rtrim
+    if "!%1:~-1!"==" " (set %1=!%1:~0,-1!&goto rtrim)
+    if "!%1:~-1!"=="%TAB%" (set %1=!%1:~0,-1!&goto rtrim)
+    exit /b
+
+
+REM check file/dir exist
+:check_exist
+set check_exist_notfoud=
+if not exist %1 (
+    echo.    %ESC%[41m Каталог/файл не найден %ESC%[0m%ESC%[46G : %1
+    set check_exist_notfoud=TRUE
+) else (
+    echo.    %ESC%[92m Каталог/файл найден    %ESC%[0m%ESC%[46G : %1
+)
+exit /b
+
+
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:: Timeout with key press detect.
+::
+:: Mandatory parameter : seconds for timeout.
+:: Return value        : key_pressed variable defined if key pressed
+::                      (value - seconds when key was pressed).
+::                       If key was not pressed - key_pressed is undefined.
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:timeout_with_keypress_detect
+    set time_to_out=%1
+    set key_pressed=
+    set /a SEC_BEFORE=1%TIME:~6,2% - 100
+    timeout %time_to_out%
+    set /a SEC_AFTER=1%TIME:~6,2%  - 100
+    if %SEC_AFTER% GEQ %SEC_BEFORE% (set /a DIFF=%SEC_AFTER% - %SEC_BEFORE%) ^
+        else (set /a DIFF=60 + %SEC_AFTER% - %SEC_BEFORE%)
+    if %DIFF% LSS %time_to_out% (set /a key_pressed=%DIFF%)
+    exit /b
+
+
+REM Mandatory param - config name
+:Generate_Config
+setlocal EnableDelayedExpansion
+set VAR=MyDediServer
+(echo ^
+[                                                                                             ]^
+
+[   Конфигурационный файл для запуска скрипта StartDSTwithParams.cmd                          ]^
+
+[   Секции используются только для наглядности. Все параметры загружаются одним списком.      ]^
+
+[                                                                                             ]^
+
+^
+
+^
+
+[STEAM]^
+
+DST_steamcmd_dir    		    = !USERPROFILE!\steamcmd^
+
+DST_dst_bin                  	= steamapps\common\Don't Starve Together Dedicated Server\bin64^
+
+DST_exe                         = dontstarve_dedicated_server_nullrenderer_x64.exe^
+
+^
+
+^
+
+[SERVER]^
+
+[   parameters for dontstarve_dedicated_server_nullrenderer executable                        ]^
+
+DST_persistent_storage_root  	= !USERPROFILE!\KleiDedicated^
+
+DST_conf_dir                 	= DoNotStarveTogether^
+
+DST_cluster                  	= %VAR%^
+
+^
+
+^
+
+[SHARDS]^
+
+[   space separated dirnames, dirname cannot include spaces                                   ]^
+
+[   Example: Master Caves                                                                     ]^
+
+[   First shard is master always. TODO: parse cluster.ini server.ini to find master           ]^
+
+DST_shards                      = Master Caves^
+
+^
+
+^
+
+[MYMODS]^
+
+[   dir for mods settings per cluster                                                         ]^
+
+[   dir located inside %%DST_persistent_storage_root%%                                          ]^
+
+[   for now only 2 files affected:                                                            ]^
+
+[   1. dedicated_server_mods_setup.lua, 2. modoverrides.lua                                   ]^
+
+[   This 2 files must be inside   %%DST_persistent_storage_root%%/%%MyMods%%/%%DST_cluster%%        ]^
+
+DST_my_mods                     = MyMods^
+
+^
+
+^
+
+[CONSOLE]^
+
+[   Screen coordinates X Y for each shard's console window ^(optional^)                         ]^
+
+[   Key    - shard's name ^(as listed at DST_shards^).                                          ]^
+
+[   Value  - X Y ^(space separated, may be negative for second screen at left^)                 ]^
+
+Master                          = X Y^
+
+Caves                           = X Y^
+
+)>%1
+exit /b
