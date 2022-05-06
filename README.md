@@ -20,4 +20,4 @@ Configuration file will be created in the current folder.
 
 Put your token to cluster_token.txt inside cluster folder.
 
-(Generate token here: https://accounts.klei.com/login?goto=https://accounts.klei.com/account/game/servers)
+(Generate token here: https://accounts.klei.com/login?goto=https://accounts.klei.com/account/game/servers?game=DontStarveTogether)
