@@ -14,8 +14,7 @@ echo.091B33>%TEMP%\tf & certUtil -decodeHex -f "%TEMP%\tf" "%TEMP%\tf" > nul & s
 set TAB=%SPECHAR:~0,1%
 set ESC=%SPECHAR:~1,1%
 
-
-set ServerConfigFile=%cd%\StartDSTwithParams.conf
+set ServerConfigFile=!WORKING_DIR!\StartDSTwithParams.conf
 
 if %1.==. (
     echo.
@@ -57,11 +56,11 @@ echo.
 ::  Load parameters from ServerConfigFile into local variables
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-if exist "%ServerConfigFile%" (
-    echo.Конфигурационный файл найден: %ServerConfigFile%.     &REM Configuration file found
+if exist "!ServerConfigFile!" (
+    echo.Конфигурационный файл найден: !ServerConfigFile!.     &REM Configuration file found
     set cluster_name=ClusterName&REM Very bad! Change!
 ) else (
-    echo.%ESC%[41mКонфигурационный файл ^( %ServerConfigFile% ^) не найден.%ESC%[0m
+    echo.%ESC%[41mКонфигурационный файл ^( !ServerConfigFile! ^) не найден.%ESC%[0m
     echo.&echo.&echo.&echo.
     echo.%ESC%[4A
     set /P AREYOUSURE="Создать с параметрами по умолчанию? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
@@ -79,22 +78,23 @@ if exist "%ServerConfigFile%" (
             goto :Get_Cluster_Name_again
             pause & exit
         )
+        call :Trim cluster_name
         set new_cluster_folder=!cluster_name: =_!
-        echo.    %ESC%[32m Пробуем создать...%ESC%[0m%ESC%[46G : "%ServerConfigFile%"
-        call :Generate_Config "%ServerConfigFile%"
-        call :check_exist "%ServerConfigFile%"
+        echo.    %ESC%[32m Пробуем создать...%ESC%[0m%ESC%[46G : "!ServerConfigFile!"
+        call :Generate_Config "!ServerConfigFile!"
+        call :check_exist "!ServerConfigFile!"
         if defined check_exist_notfoud (
-            echo.Невозможно создать конфигурационный файл "%ServerConfigFile%".
+            echo.Невозможно создать конфигурационный файл "!ServerConfigFile!".
             echo.Выходим из скрипта.
             pause & exit
         )
     )
 )
 
-echo !cluster_name!
+echo Кластер: !cluster_name!
 
 echo. & echo.Пробуем загрузить параметры...                &REM Trying to load
-for /f "delims== tokens=1,2 eol=[" %%a in (%ServerConfigFile%) do (
+for /f "usebackq delims== tokens=1,2 eol=[" %%a in ("%ServerConfigFile%") do (
     :: ltrim/rtrim spaces from parameter name and value
     set keyname=%%a
     call :Trim keyname
@@ -144,11 +144,8 @@ if defined noargs (
 echo.Проверка наличия необходимых файлов...
 
 call :check_and_create_folder "%DST_steamcmd_dir%" confirm
-
-call :check_and_create_folder "%DST_persistent_storage_root%"
-
-call :check_and_create_folder "%DST_persistent_storage_root%\%DST_conf_dir%"
-
+REM call :check_and_create_folder "!WORKING_DIR!\!DST_persistent_storage_root!"
+call :check_and_create_folder "!WORKING_DIR!\!DST_persistent_storage_root!\!DST_conf_dir!"
 
 set file_not_found=
 
@@ -168,66 +165,61 @@ if defined check_exist_notfoud (
     )
 )
 
-set cluster_folder_full_path=%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster_folder%
-call :check_exist "%cluster_folder_full_path%"
+set cluster_folder_full_path=!WORKING_DIR!\!DST_persistent_storage_root!\!DST_conf_dir!\!DST_cluster_folder!
+call :check_exist "!cluster_folder_full_path!"
 if defined check_exist_notfoud (
     echo.
     echo.%ESC%[93mКластер %DST_cluster_folder% не найден.%ESC%[0m
+    set AREYOUSURE=
     set /P AREYOUSURE="%ESC%[0mСоздать с параметрами по умолчанию? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
     if /I "!AREYOUSURE!" NEQ "Y" (
         echo. & echo.    Просто выходим из скрипта  &REM Just exiting
         exit
     ) else (
-        cd /D "%~dp0%!DST_my_mods_templates_folder!"
-        echo.
-        echo.    Select mods set:
-        rem echo.        1. %ESC%[92mNo mods%ESC%[0m
-        rem set var[1]=No Mods
-        set /a i=0
-        FOR /D %%G in ("*") DO (
-            set /a i= !i!+1
-            set var!i!=%%~nxG
-            set dntemp=%%~nxG
-            call :Trim dntemp
-            echo.        !i!. !dntemp!
-        )
-        call :choice_trim 123456789 !i!
-        CHOICE /T 21 /D 1 /C "!choice_trim_RESULT!"
-        call :getvar var!ERRORLEVEL!
-        echo "!result!"
-        echo.    %ESC%[32m Генерируем конфигурацию кластера...%ESC%[0m%ESC%[46G : "!cluster_folder_full_path!"
+        call :check_exist "%~dp0%!DST_my_mods_templates_folder!"
+        if defined check_exist_notfoud (
+            echo.%ESC%[41m    Mod set templates folder "!DST_my_mods_templates_folder!" not found. Add mods manually.%ESC%[0m
+        ) else (
+            cd /D "%~dp0%!DST_my_mods_templates_folder!"
+            echo.
+            echo.    Select mods set:
+            rem echo.        1. %ESC%[92mNo mods%ESC%[0m
+            rem set var[1]=No Mods
+            set /a i=0
+            FOR /D %%G in ("*") DO (
+                set /a i= !i!+1
+                set var!i!=%%~nxG
+                set dntemp=%%~nxG
+                call :Trim dntemp
+                echo.        !i!. !dntemp!
+            )
+            call :choice_trim 123456789 !i!
+            CHOICE /T 21 /D 1 /C "!choice_trim_RESULT!"
+            call :getvar var!ERRORLEVEL!
+            echo "!result!"
+            copy "!result!\*.lua"  "!WORKING_DIR!\">nul
+        ) 
         mkdir "!cluster_folder_full_path!"
+        echo.    %ESC%[32m Генерируем конфигурацию кластера...%ESC%[0m%ESC%[46G : "!cluster_folder_full_path!"
 
         xcopy "%~dp0%!DST_cluster_templates_folder!\*.*" "!cluster_folder_full_path!\" /e>nul
         echo cluster_name = %cluster_name% >> !cluster_folder_full_path!\cluster.ini
 
         REM copy lua mods files to working dir (next run its will be copied to right places)
-        copy "!result!\*.lua"  "!WORKING_DIR!\">nul
         echo.
         echo.     %ESC%[93mВНИМАНИЕ Сервер не будет запущен без вашего токена. %ESC%[0m
         echo.     %ESC%[93mВпишите токен в %temp_file%\cluster_token.txt%ESC%[0m
         echo.     %ESC%[93m^(копипаст либо скачайте с https://accounts.klei.com/login?goto=https://accounts.klei.com/account/game/servers^)%ESC%[0m
         echo.     %ESC%[93mСкрипт будет остановлен.%ESC%[0m
-        pause & exit
+        echo.
+        set AREYOUSURE=
+        set /P AREYOUSURE="Открыть cluster_token.txt в Блокноте? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
+        if /I "!AREYOUSURE!"=="Y" (
+            start notepad.exe "!cluster_folder_full_path!\cluster_token.txt"
+        )
     )
 )
 
-echo.debug
-pause
-exit
-
-
-
-call :check_and_create_folder "%DST_persistent_storage_root%\%DST_my_mods%"
-exit
-call :check_and_create_folder "%DST_persistent_storage_root%\%DST_my_mods%\%DST_cluster_folder%"
-exit
-
-set mods_setup_lua="%DST_persistent_storage_root%\%DST_my_mods%\%DST_cluster_folder%\dedicated_server_mods_setup.lua"
-REM call :check_exist %mods_setup_lua%
-
-set mod_overrides_lua="%DST_persistent_storage_root%\%DST_my_mods%\%DST_cluster_folder%\modoverrides.lua"
-REM call :check_exist %mod_overrides_lua%
 
 set master_shard=
 for %%a in (%DST_shards%) do (
@@ -439,14 +431,16 @@ REM     Optional param : %2 - if %2==confirm then confirmation will be asked.
     call :check_exist %1
     if defined check_exist_notfoud (
         if "%2"=="confirm" (
-            set /P AREYOUSURE="%ESC%[93m         Создать "%DST_steamcmd_dir%"? (Если "НЕТ", то просто выходим из скрипта) Y/[N]?%ESC%[0m "
+            echo.%ESC%[93m         Создать "%1"?%ESC%[0m
+            set AREYOUSURE=
+            set /P AREYOUSURE="%ESC%[93m     (Если "НЕТ", то просто выходим из скрипта) Y/[N]?%ESC%[0m"
             if /I "!AREYOUSURE!" NEQ "Y" (
                 echo. & echo.    Просто выходим из скрипта  &REM Just exiting
                 exit /b
             )
         ) 
-        echo.       %ESC%[32m Пробуем создать...%ESC%[0m%ESC%[46G : %1
-        mkdir "%1"
+        echo.       %ESC%[32m Пробуем создать...%ESC%[0m%ESC%[46G : "%1"
+        mkdir %1
         call :check_exist %1 rshift
         if defined check_exist_notfoud (
             echo.        Невозможно создать папку %1. Продолжение невозможно.
@@ -532,11 +526,11 @@ DST_exe                         = dontstarve_dedicated_server_nullrenderer_x64.e
 
 [   DST_persistent_storage_root must be full-path                                             ]^
 
-DST_persistent_storage_root  	= %cd%\KleiDedicated^
+DST_persistent_storage_root  	= KleiDedicated^
 
 DST_conf_dir                 	= DoNotStarveTogether^
 
-DST_cluster_folder             	= %new_cluster_folder%^
+DST_cluster_folder             	= !new_cluster_folder!^
 
 ^
 
