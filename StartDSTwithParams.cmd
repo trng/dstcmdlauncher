@@ -49,6 +49,8 @@ if %1.==. (
     set ServerConfigFile=%1
 )
 echo.
+echo.
+echo.
 
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -60,6 +62,8 @@ if exist "%ServerConfigFile%" (
     set cluster_name=ClusterName&REM Very bad! Change!
 ) else (
     echo.%ESC%[41mКонфигурационный файл ^( %ServerConfigFile% ^) не найден.%ESC%[0m
+    echo.&echo.&echo.&echo.
+    echo.%ESC%[4A
     set /P AREYOUSURE="Создать с параметрами по умолчанию? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
     if /I "!AREYOUSURE!" NEQ "Y" (
         echo. & echo.    Просто выходим из скрипта  &REM Just exiting
