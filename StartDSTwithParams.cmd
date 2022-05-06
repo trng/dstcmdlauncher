@@ -362,8 +362,7 @@ for %%a in (%DST_shards%) do (
         )
     )
     set console_title_runtime=---   !CLUSTER_FULL_PATH!\!DST_shard!   ---   Started  !HH!:!MM!:!SS!  %DATE%   ---
-    start "!HKCU_Console_Key!" cmd /C ^
-        "title !console_title_runtime! " ^
+    start "!HKCU_Console_Key!" cmd /C title !console_title_runtime! ^
         "& %DST_exe% " ^
             "-persistent_storage_root %DST_persistent_storage_root% " ^
             "-conf_dir %DST_conf_dir% " ^
