@@ -12,7 +12,7 @@ Clone or download and unzip.
 
 https://github.com/trng/dstcmdlauncher/archive/refs/heads/main.zip
 
-Run StartDSTwithParams.cmd
+Run `StartDSTwithParams.cmd`
 
 First run - guided. All parameters except Cluster name have default values.
 
