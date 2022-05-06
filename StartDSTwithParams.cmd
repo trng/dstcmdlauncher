@@ -209,7 +209,7 @@ if defined check_exist_notfoud (
         echo.
         echo.     %ESC%[93mВНИМАНИЕ Сервер не будет запущен без вашего токена. %ESC%[0m
         echo.     %ESC%[93mВпишите токен в %temp_file%\cluster_token.txt%ESC%[0m
-        echo.     %ESC%[93m^(копипаст либо скачайте с https://accounts.klei.com/login?goto=https://accounts.klei.com/account/game/servers^)%ESC%[0m
+        echo.     %ESC%[93m^(копипаст либо скачайте с https://accounts.klei.com/login?goto=https://accounts.klei.com/account/game/servers?game=DontStarveTogether^)%ESC%[0m
         echo.     %ESC%[93mСкрипт будет остановлен.%ESC%[0m
         echo.
         set AREYOUSURE=
@@ -217,6 +217,7 @@ if defined check_exist_notfoud (
         if /I "!AREYOUSURE!"=="Y" (
             start notepad.exe "!cluster_folder_full_path!\cluster_token.txt"
         )
+        exit /b
     )
 )
 
