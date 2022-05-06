@@ -88,8 +88,6 @@ if exist "%ServerConfigFile%" (
 )
 
 echo !cluster_name!
-pause
-
 
 echo. & echo.Пробуем загрузить параметры...                &REM Trying to load
 for /f "delims== tokens=1,2 eol=[" %%a in (%ServerConfigFile%) do (
