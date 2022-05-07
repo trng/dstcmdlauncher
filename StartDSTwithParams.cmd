@@ -145,9 +145,7 @@ echo.Проверка наличия необходимых файлов...
 
 call :check_and_create_folder "%DST_steamcmd_dir%" confirm
 REM call :Ocheck_and_create_folder "!WORKING_DIR!\!DST_persistent_storage_root!"
-echo "1--"
 call :check_and_create_folder "!WORKING_DIR!\!DST_persistent_storage_root!\!DST_conf_dir!"
-echo "2--"
 set file_not_found=
 
 set temp_file_name=%DST_steamcmd_dir%\steamcmd.exe
