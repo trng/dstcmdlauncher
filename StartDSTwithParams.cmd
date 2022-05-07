@@ -1,22 +1,22 @@
 @echo off
 REM !WORKING_DIR! - Folder for config and cluster by default (changeable via .conf)
 set WORKING_DIR=%cd%
-
 setlocal EnableDelayedExpansion     &REM Till the end of whole script!
 chcp 1251 > nul                     &REM Non-latin strings encoding
-if "%1" == "/goto" goto :%2         &REM See :NewConsole label below for details
+if "%~1" == "/goto" goto :%~2         &REM See :NewConsole label below for details
+
 
 
 :: Hack for define placeholders:
 ::    - chr(09) to %TAB% (for ltrim | rtrim in :Trim)
 ::    - chr(27) to %ESC% (for echo coloring)
-echo.091B33>%TEMP%\tf & certUtil -decodeHex -f "%TEMP%\tf" "%TEMP%\tf" > nul & set /P SPECHAR=<%TEMP%\tf & del %TEMP%\tf
+echo.091B33>%TEMP%\tf & certUtil -decodeHex -f "%TEMP%\tf" "%TEMP%\tf" > nul & set /P SPECHAR=<"%TEMP%\tf" & del "%TEMP%\tf"
 set TAB=%SPECHAR:~0,1%
 set ESC=%SPECHAR:~1,1%
 
 set ServerConfigFile=!WORKING_DIR!\StartDSTwithParams.conf
 
-if %1.==. (
+if %~1.==. (
     echo.
     echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -45,12 +45,11 @@ if %1.==. (
     echo.::::::::::::::::::::::::::::::::
     echo.::  StartDSTwithParams v.1.0  ::
     echo.::::::::::::::::::::::::::::::::
-    set ServerConfigFile=%1
+    set ServerConfigFile=%~1
 )
 echo.
 echo.
 echo.
-
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::  Load parameters from ServerConfigFile into local variables
@@ -78,6 +77,7 @@ if exist "!ServerConfigFile!" (
             goto :Get_Cluster_Name_again
             pause & exit
         )
+        set cluster_name=!cluster_name:"=!
         call :Trim cluster_name
         set new_cluster_folder=!cluster_name: =_!
         echo.    %ESC%[32m Пробуем создать...%ESC%[0m%ESC%[46G : "!ServerConfigFile!"
@@ -94,7 +94,7 @@ if exist "!ServerConfigFile!" (
 echo Кластер: !cluster_name!
 
 echo. & echo.Пробуем загрузить параметры...                &REM Trying to load
-for /f "usebackq delims== tokens=1,2 eol=[" %%a in ("%ServerConfigFile%") do (
+for /f "usebackq delims== tokens=1,2 eol=[" %%a in ("!ServerConfigFile!") do (
     :: ltrim/rtrim spaces from parameter name and value
     set keyname=%%a
     call :Trim keyname
@@ -144,9 +144,10 @@ if defined noargs (
 echo.Проверка наличия необходимых файлов...
 
 call :check_and_create_folder "%DST_steamcmd_dir%" confirm
-REM call :check_and_create_folder "!WORKING_DIR!\!DST_persistent_storage_root!"
+REM call :Ocheck_and_create_folder "!WORKING_DIR!\!DST_persistent_storage_root!"
+echo "1--"
 call :check_and_create_folder "!WORKING_DIR!\!DST_persistent_storage_root!\!DST_conf_dir!"
-
+echo "2--"
 set file_not_found=
 
 set temp_file_name=%DST_steamcmd_dir%\steamcmd.exe
@@ -413,12 +414,12 @@ REM ltrim and rtrim whitespaces. %1 - variable NAME
 REM check file/dir exist
 REM Mandatory param - folder or file name
     set check_exist_notfoud=
-    if "%2"=="rshift" (set spaces=      ) else (set spaces=   )
-    if not exist %1 (
-        echo.%spaces% %ESC%[41m Каталог/файл не найден %ESC%[0m%ESC%[46G : %1
+    if "%~2"=="rshift" (set spaces=      ) else (set spaces=   )
+    if not exist "%~1" (
+        echo.%spaces% %ESC%[41m Каталог/файл не найден %ESC%[0m%ESC%[46G : "%~1"
         set check_exist_notfoud=TRUE
     ) else (
-        echo.%spaces% %ESC%[92m Каталог/файл найден    %ESC%[0m%ESC%[46G : %1
+        echo.%spaces% %ESC%[92m Каталог/файл найден    %ESC%[0m%ESC%[46G : "%~1"
     )
     exit /b
 
@@ -429,22 +430,28 @@ REM Check if folder exsit, try create non-existing folder.
 REM If the folder cannot be created - script will be termitated inside function!
 REM     Mandatory param: %1 - folder name.
 REM     Optional param : %2 - if %2==confirm then confirmation will be asked.    
-    call :check_exist %1
+    echo before check_exist call
+    call :check_exist "%~1"
+    echo after check_exist call
     if defined check_exist_notfoud (
-        if "%2"=="confirm" (
-            echo.%ESC%[93m         Создать "%1"?%ESC%[0m
+        if "%~2"=="confirm" (
+            echo.%ESC%[93m         Создать "%~1"?%ESC%[0m
             set AREYOUSURE=
             set /P AREYOUSURE="%ESC%[93m     (Если "НЕТ", то просто выходим из скрипта) Y/[N]?%ESC%[0m"
             if /I "!AREYOUSURE!" NEQ "Y" (
                 echo. & echo.    Просто выходим из скрипта  &REM Just exiting
                 exit /b
             )
-        ) 
-        echo.       %ESC%[32m Пробуем создать...%ESC%[0m%ESC%[46G : "%1"
-        mkdir %1
-        call :check_exist %1 rshift
+        )
+REM  %ESC%[46G
+REM        echo.       %ESC%[32m Пробуем создать... %ESC%[0m  :
+REM        echo "%1"
+        echo.Пробуем создать
+REM          echo %1
+        mkdir "%~1"
+        call :check_exist "%~1" rshift
         if defined check_exist_notfoud (
-            echo.        Невозможно создать папку %1. Продолжение невозможно.
+            echo.        Невозможно создать папку "%~1". Продолжение невозможно.
             pause & exit
         )
     )
