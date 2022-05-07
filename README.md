@@ -21,3 +21,9 @@ Configuration file will be created in the current folder.
 Put your token to cluster_token.txt inside cluster folder.
 
 (Generate token here: https://accounts.klei.com/login?goto=https://accounts.klei.com/account/game/servers?game=DontStarveTogether)
+
+.
+
+## Advanced usage
+You can specify config file name in the command line (for example - via shortcut on desktop).
+With different configs you can run multiple dst servers on one computer.
