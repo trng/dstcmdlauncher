@@ -164,7 +164,12 @@ if defined check_exist_notfoud (
     )
 )
 
+::
+::
 set cluster_folder_full_path=!WORKING_DIR!\!DST_persistent_storage_root!\!DST_conf_dir!\!DST_cluster_folder!
+::
+::
+
 call :check_exist "!cluster_folder_full_path!"
 if defined check_exist_notfoud (
     echo.
@@ -193,7 +198,7 @@ if defined check_exist_notfoud (
                 echo.        !i!. !dntemp!
             )
             call :choice_trim 123456789 !i!
-            CHOICE /T 21 /D 1 /C "%ESC%[4G!choice_trim_RESULT!"
+            CHOICE /T 21 /D 1 /C "!choice_trim_RESULT!"
             call :getvar var!ERRORLEVEL!
             echo.
             echo   %ESC%[32m Template для модов%ESC%[0m%ESC%[46G : !result!
@@ -215,7 +220,8 @@ if defined check_exist_notfoud (
         echo.::::  %ESC%[92mКонфигурация создана успешно^^!^^!^^!%ESC%[0m
         echo.::::
         echo.::::      %ESC%[32m Папка с настройками сервера %ESC%[0m%ESC%[46G : "!cluster_folder_full_path!"
-        echo.::::      %ESC%[32m Папка с с настройками модов %ESC%[0m%ESC%[46G : "!WORKING_DIR!\"
+        echo.::::      %ESC%[32m Конфигурация скрипта %ESC%[0m%ESC%[46G : "!ServerConfigFile!"
+        echo.::::      %ESC%[32m Файлы настройки модов находятся в%ESC%[0m%ESC%[46G : "!WORKING_DIR!\"
         echo.::::       При добавлении модов не забывайте менять оба файла:
         echo.::::           - dedicated_server_mods_setup.lua
         echo.::::           - modoverrides.lua
@@ -250,7 +256,7 @@ for %%a in (%DST_shards%) do (
 
 if defined file_not_found (
     echo.
-    echo.Не найдены необходимые папки и/или файлы.
+    echo.Не найдены папки для шардов.
     echo.Скрипт будет остановлен.  
     pause & exit /b
 )
@@ -262,10 +268,10 @@ if defined file_not_found (
 
 REM find existing
 echo.
-set CLUSTER_FULL_PATH=!DST_persistent_storage_root!\!DST_conf_dir!\!DST_cluster_folder!
+
 for %%a in (%DST_shards%) do (
     set DST_shard=%%a
-    set shard_title=!CLUSTER_FULL_PATH!\!DST_shard!
+    set shard_title=!DST_persistent_storage_root!\!DST_conf_dir!\!DST_cluster_folder!\!DST_shard!
     set "cmd=tasklist /FI "IMAGENAME eq cmd.exe" /v /fo csv | find "!shard_title!""
     for /F "usebackq tokens=2,9 delims=," %%p in (`!cmd!`) do (
         set pid_with_quotes=%%p
@@ -309,7 +315,7 @@ if defined pids_list (
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 start "Start steamcmd for load/update/validate DST dedicated server application." cmd /c "%0" /goto NewConsole
-timeout 15
+timeout 5
 exit
 
 :NewConsole
@@ -321,12 +327,11 @@ echo.
 echo.Press any key to skip load/update/validate game and mods
 echo.^(you will be jumped to shard's load^).
 echo.
-echo.%ESC%[93mWarning! Only do this if you are absolutely sure what you are doing!%ESC%[0m
+echo.%ESC%[93mWarning^!^!^!  Only do this if you are absolutely sure what are you doing!%ESC%[0m
 echo.
 echo.
 call :timeout_with_keypress_detect 15
 if not defined key_pressed (
-    echo %DST_steamcmd_dir%
     %DST_steamcmd_dir%\steamcmd.exe +login anonymous +app_update 343050 validate +quit
 )
 
@@ -337,11 +342,12 @@ if not defined key_pressed (
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-cd /D %DST_steamcmd_dir%/%DST_dst_bin%
+cd /D "!DST_steamcmd_dir!/!DST_dst_bin!"
 
 REM Copy 2 mods files to cluster and dst bin
-copy %mods_setup_lua% ..\mods\
-copy %mod_overrides_lua%  "%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster_folder%\%master_shard%\"  
+copy "!WORKING_DIR!\dedicated_server_mods_setup.lua" ..\mods\
+copy "!WORKING_DIR!\modoverrides.lua"  "!cluster_folder_full_path!\!master_shard!\"
+
 
 for %%a in (%DST_shards%) do (
     set DST_shard=%%a
@@ -374,18 +380,17 @@ for %%a in (%DST_shards%) do (
             echo X coord not defined
         )
     )
-    set console_title_runtime=---   !CLUSTER_FULL_PATH!\!DST_shard!   ---   Started  !HH!:!MM!:!SS!   %DATE%   ---
-    start "!HKCU_Console_Key!" cmd /C title !console_title_runtime! ^
-        "& %DST_exe% " ^
-            "-persistent_storage_root %DST_persistent_storage_root% " ^
+    set console_title_runtime=---   !DST_persistent_storage_root!\!DST_conf_dir!\!DST_cluster_folder!\!DST_shard!   ---   Started  !HH!:!MM!:!SS!   %DATE%   ---
+    start "!HKCU_Console_Key!" cmd /C "title !console_title_runtime! & %DST_exe% " ^
+            "-persistent_storage_root !WORKING_DIR!\%DST_persistent_storage_root% " ^
             "-conf_dir %DST_conf_dir% " ^
             "-cluster %DST_cluster_folder%  " ^
             "-shard !DST_shard! ""
 )
 REM            :: -console has been deprecated Use the [MISC] / console_enabled setting instead. "-console " ^
 
-timeout 25
-exit
+timeout 5
+exit /b
 
 
 
