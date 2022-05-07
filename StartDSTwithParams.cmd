@@ -193,9 +193,10 @@ if defined check_exist_notfoud (
                 echo.        !i!. !dntemp!
             )
             call :choice_trim 123456789 !i!
-            CHOICE /T 21 /D 1 /C "!choice_trim_RESULT!"
+            CHOICE /T 21 /D 1 /C "%ESC%[4G!choice_trim_RESULT!"
             call :getvar var!ERRORLEVEL!
-            echo "!result!"
+            echo.
+            echo   %ESC%[32m Template для модов%ESC%[0m%ESC%[46G : !result!
             copy "!result!\*.lua"  "!WORKING_DIR!\">nul
         ) 
         mkdir "!cluster_folder_full_path!"
@@ -206,11 +207,31 @@ if defined check_exist_notfoud (
 
         REM copy lua mods files to working dir (next run its will be copied to right places)
         echo.
-        echo.     %ESC%[93mВНИМАНИЕ Сервер не будет запущен без вашего токена. %ESC%[0m
-        echo.     %ESC%[93mВпишите токен в %temp_file%\cluster_token.txt%ESC%[0m
-        echo.     %ESC%[93m^(копипаст либо скачайте с https://accounts.klei.com/login?goto=https://accounts.klei.com/account/game/servers?game=DontStarveTogether^)%ESC%[0m
-        echo.     %ESC%[93mСкрипт будет остановлен.%ESC%[0m
+        echo.   
+        echo.   
+        echo.::::
+        echo.::::
+        echo.::::
+        echo.::::  %ESC%[92mКонфигурация создана успешно^^!^^!^^!%ESC%[0m
+        echo.::::
+        echo.::::      %ESC%[32m Папка с настройками сервера %ESC%[0m%ESC%[46G : "!cluster_folder_full_path!"
+        echo.::::      %ESC%[32m Папка с с настройками модов %ESC%[0m%ESC%[46G : "!WORKING_DIR!\"
+        echo.::::       При добавлении модов не забывайте менять оба файла:
+        echo.::::           - dedicated_server_mods_setup.lua
+        echo.::::           - modoverrides.lua
+        echo.::::   
+        echo.::::   
+        echo.::::  %ESC%[93mВНИМАНИЕ ^^!^^!^^!%ESC%[0m
+        echo.::::  %ESC%[93mСервер не будет запущен без вашего токена^^!%ESC%[0m
+        echo.::::      Впишите токен в cluster_token.txt
+        echo.::::      Копипаст либо скачайте с
+        echo.::::      https://accounts.klei.com/login?goto=https://accounts.klei.com/account/game/servers?game=DontStarveTogether
+        echo.::::
+        echo.::::
+        echo.::::   
         echo.
+        echo.
+        echo.%ESC%[93mСейчас скрипт будет остановлен.%ESC%[0m
         set AREYOUSURE=
         set /P AREYOUSURE="Открыть cluster_token.txt в Блокноте? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
         if /I "!AREYOUSURE!"=="Y" (
@@ -428,9 +449,7 @@ REM Check if folder exsit, try create non-existing folder.
 REM If the folder cannot be created - script will be termitated inside function!
 REM     Mandatory param: %1 - folder name.
 REM     Optional param : %2 - if %2==confirm then confirmation will be asked.    
-    echo before check_exist call
     call :check_exist "%~1"
-    echo after check_exist call
     if defined check_exist_notfoud (
         if "%~2"=="confirm" (
             echo.%ESC%[93m         Создать "%~1"?%ESC%[0m
@@ -441,11 +460,7 @@ REM     Optional param : %2 - if %2==confirm then confirmation will be asked.
                 exit /b
             )
         )
-REM  %ESC%[46G
-REM        echo.       %ESC%[32m Пробуем создать... %ESC%[0m  :
-REM        echo "%1"
-        echo.Пробуем создать
-REM          echo %1
+        echo.        %ESC%[32mПробуем создать... %ESC%[0m%ESC%[46G  : "%~1"
         mkdir "%~1"
         call :check_exist "%~1" rshift
         if defined check_exist_notfoud (
