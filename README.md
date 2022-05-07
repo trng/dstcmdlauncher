@@ -14,7 +14,7 @@ https://github.com/trng/dstcmdlauncher/archive/refs/heads/main.zip
 
 Run `StartDSTwithParams.cmd`
 
-First run - guided. All parameters except Cluster name have default values.
+First run - guided. All parameters except *Cluster name* have default values.
 
 Configuration file will be created in the current folder.
 
