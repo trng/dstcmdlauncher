@@ -8,7 +8,7 @@
 * Guided first run.
 
 ## Install
-Clone or download and unzip. 
+Clone. Or download and unzip (don't forget to unzip before run).
 
 https://github.com/trng/dstcmdlauncher/archive/refs/heads/main.zip
 
