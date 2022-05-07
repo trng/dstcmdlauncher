@@ -7,7 +7,7 @@
 * Windows 10 supported (build 17063 and above).
 * Guided first run.
 
-# Install
+## Install
 Clone or download and unzip. 
 
 https://github.com/trng/dstcmdlauncher/archive/refs/heads/main.zip
