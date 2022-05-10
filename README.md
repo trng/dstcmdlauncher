@@ -1,3 +1,5 @@
+**Current version $script_ver**
+
 # Don't Starve Together cmd launcher.
 
 * No powershell used.
