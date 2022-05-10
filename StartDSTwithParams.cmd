@@ -1,18 +1,61 @@
 @echo off
-REM !WORKING_DIR! - Folder for config and cluster by default (changeable via .conf)
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+::
+set SCRIPT_VER=v1.1.0
+::
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+REM !WORKING_DIR! - Folder by default for config file and cluster folder (changeable via .conf)
 set WORKING_DIR=%cd%
+
 setlocal EnableDelayedExpansion     &REM Till the end of whole script!
 chcp 1251 > nul                     &REM Non-latin strings encoding
-if "%~1" == "/goto" goto :%~2         &REM See :NewConsole label below for details
+if "%~1" == "/goto" goto :%~2       &REM See :NewConsole label below for details
 
-
-
-:: Hack for define placeholders:
-::    - chr(09) to %TAB% (for ltrim | rtrim in :Trim)
-::    - chr(27) to %ESC% (for echo coloring)
-echo.091B33>%TEMP%\tf & certUtil -decodeHex -f "%TEMP%\tf" "%TEMP%\tf" > nul & set /P SPECHAR=<"%TEMP%\tf" & del "%TEMP%\tf"
+:: Hack for define placeholders:  chr(09) to %TAB% (for ltrim | rtrim in :Trim)
+::                                chr(27) to %ESC% (for echo coloring)
+echo.091B33>%TEMP%\sdstwp & certUtil -decodeHex -f "%TEMP%\sdstwp" "%TEMP%\sdstwp" > nul & set /P SPECHAR=<"%TEMP%\sdstwp"
 set TAB=%SPECHAR:~0,1%
 set ESC=%SPECHAR:~1,1%
+
+REM Check new version on github. If this script file has read-only attribute, the new version check will be skipped.
+call :Trim SCRIPT_VER
+set script_ver_online=
+
+set attributes=%~af0
+if "!attributes:~1,1!"=="-" (
+    del "%TEMP%\sdstwp"
+    curl -L -s -o "%TEMP%\sdstwp" https://raw.githubusercontent.com/trng/dstcmdlauncher/main/StartDSTwithParams.cmd > nul
+    type "%TEMP%\sdstwp" | findstr /b /l /c:"set SCRIPT_VER="> %TEMP%\sdstwp & set /P script_ver_online=<%TEMP%\sdstwp
+    if defined script_ver_online (
+        call :Trim script_ver_online
+        set script_ver_online=!script_ver_online:~15!
+        if not "%SCRIPT_VER%"=="!script_ver_online!" (
+            echo.
+            echo.
+            echo.%ESC%[93mNew version availiable on github.%ESC%[0m
+            echo.    Current version  : "%SCRIPT_VER%"
+            echo.    Version on github: "!script_ver_online!"
+            echo.
+            echo.What do you want to do:
+            echo.    1. Continiue load dedicated server ^(default, 15 sec timeout^).
+            echo.    2. Stop script and goto github.
+            echo.    3. Do not check new versions in the future for this cluster ^(not recommended^).
+            echo.
+            echo | set /p=%ESC%[0m    [1,2,3]?
+            CHOICE /T 15 /D 1 /C "123">nul
+            if "!ERRORLEVEL!"=="2" (start explorer "https://github.com/trng/dstcmdlauncher" & exit)
+            if "!ERRORLEVEL!"=="3" (
+                echo.
+                echo.    To skip check new versions %ESC%[93mread-only attribute%ESC%[0m will be applied to this script.
+                echo.    You can re-enable check for new version by removing read-only attribute.
+                attrib.exe +R "StartDSTwithParams.cmd"
+                echo.
+                pause
+            )
+        )
+    )
+)
 
 set ServerConfigFile=!WORKING_DIR!\StartDSTwithParams.conf
 
@@ -20,31 +63,31 @@ if %~1.==. (
     echo.
     echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    echo.::                                                                     ::
-    echo.::  StartDSTwithParams v.1.0                                           ::
-    echo.::  Copyright ^(c^) trng                                                 ::
-    echo.::                                                                     ::
-    echo.::                                                                     ::
-    echo.::  Скрипт запуска выделенного сервера Don't Starve together.          ::
-    echo.::  Для запуска обязательно наличие конфигурационного файла.           ::
-    echo.::  Имя файла конфигурации указывается в командной строке:             ::
-    echo.::                                                                     ::
-    echo.::      StartDSTwithParams.cmd MyDSTDedicatedServer.conf               ::
-    echo.::                                                                     ::
-    echo.::                                                                     ::
-    echo.::  При запуске без параметров генерируется/используется               ::
-    echo.::  дефолтный конфиг ^(в текущей папке^):                                ::
-    echo.::                                                                     ::
-    echo.::      StartDSTwithParams.conf                                        ::
-    echo.::                                                                     ::
-    echo.::                                                                     ::
+    echo.::::                                                                 ::::
+    echo.::::    StartDSTwithParams v.%SCRIPT_VER%                                   ::::
+    echo.::::    Copyright ^(c^) trng                                           ::::
+    echo.::::                                                                 ::::
+    echo.::::                                                                 ::::
+    echo.::::    Скрипт запуска выделенного сервера Don't Starve together.    ::::
+    echo.::::    Для запуска обязательно наличие конфигурационного файла.     ::::
+    echo.::::    Имя файла конфигурации указывается в командной строке:       ::::
+    echo.::::                                                                 ::::
+    echo.::::        StartDSTwithParams.cmd MyDSTDedicatedServer.conf         ::::
+    echo.::::                                                                 ::::
+    echo.::::                                                                 ::::
+    echo.::::    При запуске без параметров генерируется/используется         ::::
+    echo.::::    дефолтный конфиг ^(в текущей папке^):                          ::::
+    echo.::::                                                                 ::::
+    echo.::::        StartDSTwithParams.conf                                  ::::
+    echo.::::                                                                 ::::
+    echo.::::                                                                 ::::
     echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     timeout 20
 ) else (
-    echo.::::::::::::::::::::::::::::::::
-    echo.::  StartDSTwithParams v.1.0  ::
-    echo.::::::::::::::::::::::::::::::::
+    echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    echo.::::    StartDSTwithParams v.%SCRIPT_VER%                                   ::::
+    echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     set ServerConfigFile=%~1
 )
 echo.
@@ -198,7 +241,7 @@ if defined check_exist_notfoud (
                 echo.        !i!. !dntemp!
             )
             call :choice_trim 123456789 !i!
-            CHOICE /T 21 /D 1 /C "!choice_trim_RESULT!"
+            CHOICE /T 31 /D 1 /C "!choice_trim_RESULT!"
             call :getvar var!ERRORLEVEL!
             echo.
             echo   %ESC%[32m Template для модов%ESC%[0m%ESC%[46G : !result!
@@ -344,13 +387,13 @@ if not defined key_pressed (
 
 cd /D "!DST_steamcmd_dir!/!DST_dst_bin!"
 
-REM Copy 2 mods files to cluster and dst bin
-copy "!WORKING_DIR!\dedicated_server_mods_setup.lua" ..\mods\
-copy "!WORKING_DIR!\modoverrides.lua"  "!cluster_folder_full_path!\!master_shard!\"
 
+REM Copy 2 mods files: to dst bin and to cluster shards (inside shards loop)
+copy "!WORKING_DIR!\dedicated_server_mods_setup.lua" ..\mods\
 
 for %%a in (%DST_shards%) do (
     set DST_shard=%%a
+    copy "!WORKING_DIR!\modoverrides.lua"  "!cluster_folder_full_path!\!DST_shard!\"
     set HH=%TIME: =0%
     set HH=!HH:~0,2!
     set MM=!TIME:~3,2!
@@ -423,7 +466,7 @@ REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
 :Trim
-REM ltrim and rtrim whitespaces. %1 - variable NAME
+REM ltrim and rtrim whitespaces. %1 - variable NAME (input and output)
     :ltrim
     if "!%1:~0,1!"==" " (set %1=!%1:~1!&goto ltrim)
     if "!%1:~0,1!"=="%TAB%" (set %1=!%1:~1!&goto ltrim)
@@ -548,9 +591,13 @@ DST_exe                         = dontstarve_dedicated_server_nullrenderer_x64.e
 
 [SERVER]^
 
-[   parameters for dontstarve_dedicated_server_nullrenderer executable                        ]^
+[   Parameters for dontstarve_dedicated_server_nullrenderer executable.                       ]^
 
-[   DST_persistent_storage_root must be full-path                                             ]^
+[   3 nested dirs.                                                                            ]^
+
+[    DST_persistent_storage_root relative to current dir ^(defined in WORKING_DIR varable^):    ]^
+
+[    WORKING_DIR/DST_persistent_storage_root/DST_conf_dir/DST_cluster_folder                  ]^
 
 DST_persistent_storage_root  	= KleiDedicated^
 
@@ -587,6 +634,7 @@ DST_shards                      = Master Caves^
 Master                          = X Y^
 
 Caves                           = X Y^
+
 
 )>%1
 exit /b

@@ -16,7 +16,7 @@ return {
   ["workshop-622471256"]   = { enabled = true },
   ["workshop-1981571875"]  = { enabled = true,
              		       configuration_options={ 
-                                   URL = "https://discord.gg/EnpwpPdUGg"
+                                   URL = "https://discord.gg/"
               		       }
        			     },
   ["workshop-503795626"]   = { enabled = true },
