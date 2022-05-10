@@ -1,4 +1,4 @@
-**Current version $script_ver**
+**Current version v1.1.2**
 
 # Don't Starve Together cmd launcher.
 
