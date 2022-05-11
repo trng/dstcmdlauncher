@@ -1,9 +1,10 @@
 @echo off
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:: Do not change structure of this line!
+:: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
+set SCRIPT_VER=v1.2.0
 ::
-set SCRIPT_VER=v1.1.0
-::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 REM !WORKING_DIR! - Folder by default for config file and cluster folder (changeable via .conf)
 set WORKING_DIR=%cd%
@@ -20,30 +21,29 @@ set ESC=%SPECHAR:~1,1%
 
 REM Check new version on github. If this script file has read-only attribute, the new version check will be skipped.
 call :Trim SCRIPT_VER
-set script_ver_online=
-
 set attributes=%~af0
 if "!attributes:~1,1!"=="-" (
     del "%TEMP%\sdstwp"
-    curl -L -s -o "%TEMP%\sdstwp" https://raw.githubusercontent.com/trng/dstcmdlauncher/main/StartDSTwithParams.cmd > nul
-    type "%TEMP%\sdstwp" | findstr /b /l /c:"set SCRIPT_VER="> %TEMP%\sdstwp & set /P script_ver_online=<%TEMP%\sdstwp
+    del "%TEMP%\sdstwp2"
+    curl -L -s -o "%TEMP%\sdstwp" "https://raw.githubusercontent.com/trng/dstcmdlauncher/main/StartDSTwithParams.cmd" > nul
+    type "%TEMP%\sdstwp" | findstr /b /l /c:"set SCRIPT_VER="> "%TEMP%\sdstwp2" & set /P script_ver_online=<"%TEMP%\sdstwp2"
     if defined script_ver_online (
         call :Trim script_ver_online
         set script_ver_online=!script_ver_online:~15!
-        if not "%SCRIPT_VER%"=="!script_ver_online!" (
-            echo.
-            echo.
+        if not "!SCRIPT_VER!"=="!script_ver_online!" (
+            echo. & echo.
             echo.%ESC%[93mNew version availiable on github.%ESC%[0m
+            echo.
             echo.    Current version  : "%SCRIPT_VER%"
             echo.    Version on github: "!script_ver_online!"
             echo.
             echo.What do you want to do:
-            echo.    1. Continiue load dedicated server ^(default, 15 sec timeout^).
+            echo.    1. Continiue load dedicated server ^(default, 20 sec timeout^).
             echo.    2. Stop script and goto github.
             echo.    3. Do not check new versions in the future for this cluster ^(not recommended^).
             echo.
             echo | set /p=%ESC%[0m    [1,2,3]?
-            CHOICE /T 15 /D 1 /C "123">nul
+            CHOICE /T 20 /D 1 /C "123">nul
             if "!ERRORLEVEL!"=="2" (start explorer "https://github.com/trng/dstcmdlauncher" & exit)
             if "!ERRORLEVEL!"=="3" (
                 echo.
@@ -57,54 +57,51 @@ if "!attributes:~1,1!"=="-" (
     )
 )
 
-set ServerConfigFile=!WORKING_DIR!\StartDSTwithParams.conf
-
 if %~1.==. (
-    echo.
-    echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    echo.::::                                                                 ::::
-    echo.::::    StartDSTwithParams v.%SCRIPT_VER%                                   ::::
-    echo.::::    Copyright ^(c^) trng                                           ::::
-    echo.::::                                                                 ::::
-    echo.::::                                                                 ::::
-    echo.::::    Скрипт запуска выделенного сервера Don't Starve together.    ::::
-    echo.::::    Для запуска обязательно наличие конфигурационного файла.     ::::
-    echo.::::    Имя файла конфигурации указывается в командной строке:       ::::
-    echo.::::                                                                 ::::
-    echo.::::        StartDSTwithParams.cmd MyDSTDedicatedServer.conf         ::::
-    echo.::::                                                                 ::::
-    echo.::::                                                                 ::::
-    echo.::::    При запуске без параметров генерируется/используется         ::::
-    echo.::::    дефолтный конфиг ^(в текущей папке^):                          ::::
-    echo.::::                                                                 ::::
-    echo.::::        StartDSTwithParams.conf                                  ::::
-    echo.::::                                                                 ::::
-    echo.::::                                                                 ::::
-    echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    timeout 20
+    set ServerConfigFile=!WORKING_DIR!\StartDSTwithParams.conf
 ) else (
-    echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    echo.::::    StartDSTwithParams v.%SCRIPT_VER%                                   ::::
-    echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     set ServerConfigFile=%~1
 )
+
 echo.
 echo.
 echo.
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-::  Load parameters from ServerConfigFile into local variables
+::  Check for config file (use existing or generate new)
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 if exist "!ServerConfigFile!" (
     echo.Конфигурационный файл найден: !ServerConfigFile!.     &REM Configuration file found
     set cluster_name=ClusterName&REM Very bad! Change!
 ) else (
+    echo.
+    echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    echo.::::                                                                 ::::
+    echo.::::    StartDSTwithParams %SCRIPT_VER%                    %ESC%[69G ::::
+    echo.::::    Copyright ^(c^) trng                                           ::::
+    echo.::::                                                                 ::::
+    echo.::::                                                                 ::::
+    echo.::::    Скрипт запуска выделенного сервера Don't Starve together.    ::::
+    echo.::::    Для запуска обязательно наличие конфигурационного файла.     ::::
+    echo.::::    Два варианта запуска скрипта:                                ::::
+    echo.::::                                                                 ::::
+    echo.::::        1. StartDSTwithParams.cmd                                ::::
+    echo.::::          ^(используется дефолтное имя: StartDSTwithParams.conf^)  ::::
+    echo.::::                                                                 ::::
+    echo.::::        2. StartDSTwithParams.cmd config_file_name.conf          ::::
+    echo.::::                                                                 ::::
+    echo.::::    Если файла конфигурации с таким именем не существует,        ::::
+    echo.::::    генерируется конфиг с дефолтными параметрами.                ::::
+    echo.::::                                                                 ::::
+    echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    echo.
+    pause
+    echo. & echo. & echo. & echo.
     echo.%ESC%[41mКонфигурационный файл ^( !ServerConfigFile! ^) не найден.%ESC%[0m
-    echo.&echo.&echo.&echo.
-    echo.%ESC%[4A
+    echo. 
     set /P AREYOUSURE="Создать с параметрами по умолчанию? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
     if /I "!AREYOUSURE!" NEQ "Y" (
         echo. & echo.    Просто выходим из скрипта  &REM Just exiting
@@ -131,11 +128,16 @@ if exist "!ServerConfigFile!" (
             echo.Выходим из скрипта.
             pause & exit
         )
+        set NewConfigCreated=True
     )
 )
 
 echo Кластер: !cluster_name!
 
+
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+::  Load parameters from ServerConfigFile into local variables
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 echo. & echo.Пробуем загрузить параметры...                &REM Trying to load
 for /f "usebackq delims== tokens=1,2 eol=[" %%a in ("!ServerConfigFile!") do (
     :: ltrim/rtrim spaces from parameter name and value
@@ -214,81 +216,86 @@ set cluster_folder_full_path=!WORKING_DIR!\!DST_persistent_storage_root!\!DST_co
 ::
 
 call :check_exist "!cluster_folder_full_path!"
-if defined check_exist_notfoud (
-    echo.
-    echo.%ESC%[93mКластер %DST_cluster_folder% не найден.%ESC%[0m
-    set AREYOUSURE=
-    set /P AREYOUSURE="%ESC%[0mСоздать с параметрами по умолчанию? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
-    if /I "!AREYOUSURE!" NEQ "Y" (
-        echo. & echo.    Просто выходим из скрипта  &REM Just exiting
-        exit
-    ) else (
-        call :check_exist "%~dp0%!DST_my_mods_templates_folder!"
-        if defined check_exist_notfoud (
-            echo.%ESC%[41m    Mod set templates folder "!DST_my_mods_templates_folder!" not found. Add mods manually.%ESC%[0m
-        ) else (
-            cd /D "%~dp0%!DST_my_mods_templates_folder!"
-            echo.
-            echo.    Select mods set:
-            rem echo.        1. %ESC%[92mNo mods%ESC%[0m
-            rem set var[1]=No Mods
-            set /a i=0
-            FOR /D %%G in ("*") DO (
-                set /a i= !i!+1
-                set var!i!=%%~nxG
-                set dntemp=%%~nxG
-                call :Trim dntemp
-                echo.        !i!. !dntemp!
-            )
-            call :choice_trim 123456789 !i!
-            CHOICE /T 31 /D 1 /C "!choice_trim_RESULT!"
-            call :getvar var!ERRORLEVEL!
-            echo.
-            echo   %ESC%[32m Template для модов%ESC%[0m%ESC%[46G : !result!
-            copy "!result!\*.lua"  "!WORKING_DIR!\">nul
-        ) 
-        mkdir "!cluster_folder_full_path!"
-        echo.    %ESC%[32m Генерируем конфигурацию кластера...%ESC%[0m%ESC%[46G : "!cluster_folder_full_path!"
 
-        xcopy "%~dp0%!DST_cluster_templates_folder!\*.*" "!cluster_folder_full_path!\" /e>nul
-        echo cluster_name = %cluster_name% >> !cluster_folder_full_path!\cluster.ini
-
-        REM copy lua mods files to working dir (next run its will be copied to right places)
-        echo.
-        echo.   
-        echo.   
-        echo.::::
-        echo.::::
-        echo.::::
-        echo.::::  %ESC%[92mКонфигурация создана успешно^^!^^!^^!%ESC%[0m
-        echo.::::
-        echo.::::      %ESC%[32m Папка с настройками сервера %ESC%[0m%ESC%[46G : "!cluster_folder_full_path!"
-        echo.::::      %ESC%[32m Конфигурация скрипта %ESC%[0m%ESC%[46G : "!ServerConfigFile!"
-        echo.::::      %ESC%[32m Файлы настройки модов находятся в%ESC%[0m%ESC%[46G : "!WORKING_DIR!\"
-        echo.::::       При добавлении модов не забывайте менять оба файла:
-        echo.::::           - dedicated_server_mods_setup.lua
-        echo.::::           - modoverrides.lua
-        echo.::::   
-        echo.::::   
-        echo.::::  %ESC%[93mВНИМАНИЕ ^^!^^!^^!%ESC%[0m
-        echo.::::  %ESC%[93mСервер не будет запущен без вашего токена^^!%ESC%[0m
-        echo.::::      Впишите токен в cluster_token.txt
-        echo.::::      Копипаст либо скачайте с
-        echo.::::      https://accounts.klei.com/login?goto=https://accounts.klei.com/account/game/servers?game=DontStarveTogether
-        echo.::::
-        echo.::::
-        echo.::::   
+if not defined check_exist_notfoud (
+    REM cluster exist
+    if defined NewConfigCreated (
+        REM cluster exist AND new config generated.
         echo.
         echo.
-        echo.%ESC%[93mСейчас скрипт будет остановлен.%ESC%[0m
+        echo.%ESC%[93mКластер с таким именем уже существует.%ESC%[0m
+		echo.%ESC%[93mБудет использован новый конфигурационный файл с существующим кластером.%ESC%[0m
         set AREYOUSURE=
-        set /P AREYOUSURE="Открыть cluster_token.txt в Блокноте? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
-        if /I "!AREYOUSURE!"=="Y" (
-            start notepad.exe "!cluster_folder_full_path!\cluster_token.txt"
+        set /P AREYOUSURE="Продолжить? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
+        if /I "!AREYOUSURE!" NEQ "Y" (
+            echo. & echo.    Просто выходим из скрипта  &REM Just exiting
+            exit
         )
-        exit /b
     )
-)
+) else (
+    echo.
+    echo.%ESC%[93mКластер %DST_cluster_folder% не найден. Создаем с параметрами по умолчанию.%ESC%[0m
+    call :check_exist "%~dp0%!DST_my_mods_templates_folder!"
+    if defined check_exist_notfoud (
+        echo.%ESC%[41m    Mod set templates folder "!DST_my_mods_templates_folder!" not found. Add mods manually.%ESC%[0m
+    ) else (
+        cd /D "%~dp0%!DST_my_mods_templates_folder!"
+        echo.
+        echo.    Select mods set:
+        set /a i=0
+        FOR /D %%G in ("*") DO (
+            set /a i= !i!+1
+            set var!i!=%%~nxG
+            set dntemp=%%~nxG
+            call :Trim dntemp
+            echo.        !i!. !dntemp!
+        )
+        call :choice_trim 123456789 !i!
+        CHOICE /T 31 /D 1 /C "!choice_trim_RESULT!"
+        call :getvar var!ERRORLEVEL!
+        echo.
+        echo   %ESC%[32m    Template для модов%ESC%[0m%ESC%[46G : !result!
+		REM copy lua mods files to working dir (every next run its will be copied to right places)
+        copy "!result!\*.lua"  "!WORKING_DIR!\">nul
+    ) 
+    mkdir "!cluster_folder_full_path!"
+    echo.    %ESC%[32m  Генерируем конфигурацию кластера...%ESC%[0m%ESC%[46G : "!cluster_folder_full_path!"
+    xcopy "%~dp0%!DST_cluster_templates_folder!\*.*" "!cluster_folder_full_path!\" /e>nul
+    echo cluster_name = %cluster_name% >> !cluster_folder_full_path!\cluster.ini
+    echo.
+    echo.   
+    echo.   
+    echo.::::
+    echo.::::
+    echo.::::
+    echo.::::  %ESC%[92mКонфигурация создана успешно^^!^^!^^!%ESC%[0m
+    echo.::::
+    echo.::::  %ESC%[32mПапка с настройками сервера %ESC%[0m%ESC%[46G : "!cluster_folder_full_path!"
+    echo.::::  %ESC%[32mКонфигурация скрипта %ESC%[0m%ESC%[46G : "!ServerConfigFile!"
+    echo.::::  %ESC%[32mФайлы настройки модов находятся в%ESC%[0m%ESC%[46G : "!WORKING_DIR!\"
+    echo.::::  При добавлении модов не забывайте менять оба файла:
+    echo.::::      - dedicated_server_mods_setup.lua
+    echo.::::      - modoverrides.lua
+    echo.::::   
+    echo.::::   
+    echo.::::  %ESC%[93mВНИМАНИЕ ^^!^^!^^!%ESC%[0m
+    echo.::::  %ESC%[93mСервер не будет запущен без вашего токена^^!%ESC%[0m
+    echo.::::      Впишите токен в cluster_token.txt
+    echo.::::      Копипаст либо скачайте с
+    echo.::::      https://accounts.klei.com/login?goto=https://accounts.klei.com/account/game/servers?game=DontStarveTogether
+    echo.::::
+    echo.::::
+    echo.::::   
+    echo.
+    echo.
+    echo.%ESC%[93mСейчас скрипт будет остановлен.%ESC%[0m
+    set AREYOUSURE=
+    set /P AREYOUSURE="Открыть cluster_token.txt в Блокноте? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
+    if /I "!AREYOUSURE!"=="Y" (
+        start notepad.exe "!cluster_folder_full_path!\cluster_token.txt"
+    )
+    exit /b
+) 
 
 
 set master_shard=
@@ -362,6 +369,7 @@ timeout 5
 exit
 
 :NewConsole
+call :StupidCmdBreaksEscSequences
 echo.
 echo.
 echo.Start steamcmd for load/update/validate DST dedicated server application.
@@ -464,6 +472,17 @@ REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     exit /b
 
 
+:StupidCmdBreaksEscSequences
+:: A hack against various console commands that break escape sequences for no apparent reason.
+:: Its very similar like this commands call Win32 function SetConsoleMode 
+:: and reset terminal with ENABLE_VIRTUAL_TERMINAL_INPUT ENABLE_VIRTUAL_TERMINAL_PROCESSING flags
+:: But after call to any label with "exit /b" termial begin execute escape sequences again.
+:: 
+:: A hack against various console commands that break escape sequences for no apparent reason.
+:: Its very similar like this commands call Win32 function SetConsoleMode and
+:: reset terminal with cleared flags ENABLE_VIRTUAL_TERMINAL_INPUT ENABLE_VIRTUAL_TERMINAL_PROCESSING.
+:: But after call to any label with "exit /b" current termial begin execute escape sequences again.
+    exit /b
 
 :Trim
 REM ltrim and rtrim whitespaces. %1 - variable NAME (input and output)
