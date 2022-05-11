@@ -8,6 +8,7 @@
 * Windows 7 unsupported (some patch needed).
 * Windows 10 supported (build 17063 and above).
 * Guided first run.
+* Version check (can be disabled).
 
 ## Install
 Clone. Or download and unzip (don't forget to unzip before run).
