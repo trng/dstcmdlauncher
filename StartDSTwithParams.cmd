@@ -2,7 +2,7 @@
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.2
+set SCRIPT_VER=v1.2.3
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -103,8 +103,8 @@ if exist "!ServerConfigFile!" (
     echo. & echo. & echo. & echo.
     echo.%ESC%[41mКонфигурационный файл ^( !ServerConfigFile! ^) не найден.%ESC%[0m
     echo. 
-    set /P AREYOUSURE="Создать с параметрами по умолчанию? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
-    if /I "!AREYOUSURE!" NEQ "Y" (
+    set /P AREYOUSURE="Создать с параметрами по умолчанию? (Если "НЕТ", то просто выходим из скрипта) [Y]/N? "
+    if /I "!AREYOUSURE!" EQU "N" (
         echo. & echo.    Просто выходим из скрипта  &REM Just exiting
         exit /b
     ) else (
