@@ -2,7 +2,7 @@
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.1
+set SCRIPT_VER=v1.2.2
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -46,9 +46,11 @@ if "!attributes:~1,1!"=="-" (
             if "!ERRORLEVEL!"=="2" (start explorer "https://github.com/trng/dstcmdlauncher" & exit)
             if "!ERRORLEVEL!"=="3" (
                 echo.
+                echo.
+                echo.%ESC%[93mWARNING^^!^^!^^!%ESC%[0m
                 echo.    To skip check new versions %ESC%[93mread-only attribute%ESC%[0m will be applied to this script.
                 echo.    You can re-enable check for new version by removing read-only attribute.
-                attrib.exe +R "StartDSTwithParams.cmd"
+                attrib.exe +R "%~0"
                 echo.
                 pause
             )
