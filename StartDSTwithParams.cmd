@@ -2,7 +2,7 @@
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.0
+set SCRIPT_VER=v1.2.1
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -23,10 +23,9 @@ REM Check new version on github. If this script file has read-only attribute, th
 call :Trim SCRIPT_VER
 set attributes=%~af0
 if "!attributes:~1,1!"=="-" (
-    del "%TEMP%\sdstwp"
-    del "%TEMP%\sdstwp2"
+    del %TEMP%\sdstwp > nul & del %TEMP%\sdstwp2 > nul
     curl -L -s -o "%TEMP%\sdstwp" "https://raw.githubusercontent.com/trng/dstcmdlauncher/main/StartDSTwithParams.cmd" > nul
-    type "%TEMP%\sdstwp" | findstr /b /l /c:"set SCRIPT_VER="> "%TEMP%\sdstwp2" & set /P script_ver_online=<"%TEMP%\sdstwp2"
+    findstr /b /l /c:"set SCRIPT_VER=" "%TEMP%\sdstwp" > "%TEMP%\sdstwp2" & set /P script_ver_online=<"%TEMP%\sdstwp2"
     if defined script_ver_online (
         call :Trim script_ver_online
         set script_ver_online=!script_ver_online:~15!
@@ -34,7 +33,7 @@ if "!attributes:~1,1!"=="-" (
             echo. & echo.
             echo.%ESC%[93mNew version availiable on github.%ESC%[0m
             echo.
-            echo.    Current version  : "%SCRIPT_VER%"
+            echo.    Running version  : "%SCRIPT_VER%"
             echo.    Version on github: "!script_ver_online!"
             echo.
             echo.What do you want to do:
@@ -280,9 +279,9 @@ if not defined check_exist_notfoud (
     echo.::::   
     echo.::::  %ESC%[93mВНИМАНИЕ ^^!^^!^^!%ESC%[0m
     echo.::::  %ESC%[93mСервер не будет запущен без вашего токена^^!%ESC%[0m
-    echo.::::      Впишите токен в cluster_token.txt
-    echo.::::      Копипаст либо скачайте с
-    echo.::::      https://accounts.klei.com/login?goto=https://accounts.klei.com/account/game/servers?game=DontStarveTogether
+    echo.::::  Впишите токен в cluster_token.txt
+    echo.::::  Копипаст либо скачайте с
+    echo.::::  https://accounts.klei.com/login?goto=https://accounts.klei.com/account/game/servers?game=DontStarveTogether
     echo.::::
     echo.::::
     echo.::::   
