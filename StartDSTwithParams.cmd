@@ -2,15 +2,15 @@
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.3
+set SCRIPT_VER=v1.2.4
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-REM !WORKING_DIR! - Folder by default for config file and cluster folder (changeable via .conf)
+:: WORKING_DIR - variable with folder by default for config file and cluster folder (changeable via .conf)
+:: It MUST be set without EnableDelayedExpansion (with EnableDelayedExpansion sign "!" in the path will be big problem)
 set WORKING_DIR=%cd%
 
-setlocal EnableDelayedExpansion     &REM Till the end of whole script!
-chcp 1251 > nul                     &REM Non-latin strings encoding
+chcp 65001 > nul                    &REM Non-latin strings encoding
 if "%~1" == "/goto" goto :%~2       &REM See :NewConsole label below for details
 
 :: Hack for define placeholders:  chr(09) to %TAB% (for ltrim | rtrim in :Trim)
@@ -22,10 +22,11 @@ set ESC=%SPECHAR:~1,1%
 REM Check new version on github. If this script file has read-only attribute, the new version check will be skipped.
 call :Trim SCRIPT_VER
 set attributes=%~af0
+setlocal EnableDelayedExpansion
 if "!attributes:~1,1!"=="-" (
-    del %TEMP%\sdstwp > nul & del %TEMP%\sdstwp2 > nul
+    del %TEMP%\sdstwp 2> nul & del %TEMP%\sdstwp2 2> nul
     curl -L -s -o "%TEMP%\sdstwp" "https://raw.githubusercontent.com/trng/dstcmdlauncher/main/StartDSTwithParams.cmd" > nul
-    findstr /b /l /c:"set SCRIPT_VER=" "%TEMP%\sdstwp" > "%TEMP%\sdstwp2" & set /P script_ver_online=<"%TEMP%\sdstwp2"
+    if exist "%TEMP%\sdstwp" findstr /b /l /c:"set SCRIPT_VER=" "%TEMP%\sdstwp" > "%TEMP%\sdstwp2" & set /P script_ver_online=<"%TEMP%\sdstwp2"
     if defined script_ver_online (
         call :Trim script_ver_online
         set script_ver_online=!script_ver_online:~15!
@@ -54,12 +55,14 @@ if "!attributes:~1,1!"=="-" (
                 echo.
                 pause
             )
+
         )
     )
 )
 
+setlocal DisableDelayedExpansion 
 if %~1.==. (
-    set ServerConfigFile=!WORKING_DIR!\StartDSTwithParams.conf
+    set "ServerConfigFile=%WORKING_DIR%\StartDSTwithParams.conf"
 ) else (
     set ServerConfigFile=%~1
 )
@@ -72,9 +75,11 @@ echo.
 ::  Check for config file (use existing or generate new)
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+setlocal EnableDelayedExpansion
+
 if exist "!ServerConfigFile!" (
-    echo.Конфигурационный файл найден: !ServerConfigFile!.     &REM Configuration file found
-    set cluster_name=ClusterName&REM Very bad! Change!
+    echo.Конфигурационный файл найден   %ESC%[46G : "!ServerConfigFile!"     &REM Configuration file found
+    echo.
 ) else (
     echo.
     echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -120,12 +125,15 @@ if exist "!ServerConfigFile!" (
         )
         set cluster_name=!cluster_name:"=!
         call :Trim cluster_name
-        set new_cluster_folder=!cluster_name: =_!
+        set new_cluster_folder=!cluster_name!
         echo.    %ESC%[32m Пробуем создать...%ESC%[0m%ESC%[46G : "!ServerConfigFile!"
-        call :Generate_Config "!ServerConfigFile!"
-        call :check_exist "!ServerConfigFile!"
+
+        setlocal DisableDelayedExpansion 
+        call :Generate_Config "%ServerConfigFile%"
+        call :check_exist "%ServerConfigFile%"
+
         if defined check_exist_notfoud (
-            echo.Невозможно создать конфигурационный файл "!ServerConfigFile!".
+            echo.Невозможно создать конфигурационный файл "%ServerConfigFile%".
             echo.Выходим из скрипта.
             pause & exit
         )
@@ -133,23 +141,24 @@ if exist "!ServerConfigFile!" (
     )
 )
 
-echo Кластер: !cluster_name!
-
+if defined NewConfigCreated (
+    echo Кластер: "%cluster_name%"
+) else (
+   set cluster_name=Stupid trouble with undefined variable below
+)
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::  Load parameters from ServerConfigFile into local variables
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 echo. & echo.Пробуем загрузить параметры...                &REM Trying to load
-for /f "usebackq delims== tokens=1,2 eol=[" %%a in ("!ServerConfigFile!") do (
-    :: ltrim/rtrim spaces from parameter name and value
-    set keyname=%%a
-    call :Trim keyname
-    set keyvalue=%%b
-    call :Trim keyvalue
-    :: define variable with with loaded value
-    set !keyname!=!keyvalue!
-)
 
+setlocal EnableDelayedExpansion
+for /f "usebackq delims== tokens=1,2 eol=[" %%a in ("!ServerConfigFile!") do (
+    setlocal DisableDelayedExpansion
+    call :setkey %%a
+    call :setval %%b
+)
+setlocal EnableDelayedExpansion
 
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -181,7 +190,7 @@ if defined noargs (
     pause & exit /b
 )
 
-
+setlocal DisableDelayedExpansion
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::  Check for mandatory folders and files
@@ -191,17 +200,18 @@ echo.Проверка наличия необходимых файлов...
 
 call :check_and_create_folder "%DST_steamcmd_dir%" confirm
 REM call :Ocheck_and_create_folder "!WORKING_DIR!\!DST_persistent_storage_root!"
-call :check_and_create_folder "!WORKING_DIR!\!DST_persistent_storage_root!\!DST_conf_dir!"
+call :check_and_create_folder "%WORKING_DIR%\%DST_persistent_storage_root%\%DST_conf_dir%"
 set file_not_found=
 
 set temp_file_name=%DST_steamcmd_dir%\steamcmd.exe
-call :check_exist "!temp_file_name!"
+call :check_exist "%temp_file_name%"
+
 if defined check_exist_notfoud (
     echo.    %ESC%[93m Пробуем скачать...%ESC%[0m%ESC%[46G : steamcmd.exe
     curl -L -s -o %DST_steamcmd_dir%\steamcmd.zip https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip>nul
     tar -xf %DST_steamcmd_dir%\steamcmd.zip -C %DST_steamcmd_dir%>nul
     del %DST_steamcmd_dir%\steamcmd.zip>nul
-    if not exist "!temp_file_name!" (
+    if not exist "%temp_file_name%" (
         set file_not_found=TRUE
         echo.    %ESC%[41m Не удалось скачать %ESC%[0m%ESC%[46G : steamcmd.exe
     ) else (
@@ -212,12 +222,10 @@ if defined check_exist_notfoud (
 
 ::
 ::
-set cluster_folder_full_path=!WORKING_DIR!\!DST_persistent_storage_root!\!DST_conf_dir!\!DST_cluster_folder!
+set cluster_folder_full_path=%WORKING_DIR%\%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster_folder%
 ::
 ::
-
-call :check_exist "!cluster_folder_full_path!"
-
+call :check_exist "%cluster_folder_full_path%"
 if not defined check_exist_notfoud (
     REM cluster exist
     if defined NewConfigCreated (
@@ -235,15 +243,16 @@ if not defined check_exist_notfoud (
     )
 ) else (
     echo.
-    echo.%ESC%[93mКластер %DST_cluster_folder% не найден. Создаем с параметрами по умолчанию.%ESC%[0m
-    call :check_exist "%~dp0%!DST_my_mods_templates_folder!"
+    echo.%ESC%[93m     Кластер "%DST_cluster_folder%" не найден. Создаем с параметрами по умолчанию.%ESC%[0m
+    call :check_exist "%~dp0%DST_my_mods_templates_folder%"
     if defined check_exist_notfoud (
-        echo.%ESC%[41m    Mod set templates folder "!DST_my_mods_templates_folder!" not found. Add mods manually.%ESC%[0m
+        echo.%ESC%[41m    Mod set templates folder "%DST_my_mods_templates_folder%" not found. Add mods manually.%ESC%[0m
     ) else (
-        cd /D "%~dp0%!DST_my_mods_templates_folder!"
+        cd /D "%~dp0%DST_my_mods_templates_folder%"
         echo.
         echo.    Select mods set:
         set /a i=0
+        setlocal EnableDelayedExpansion
         FOR /D %%G in ("*") DO (
             set /a i= !i!+1
             set var!i!=%%~nxG
@@ -257,30 +266,37 @@ if not defined check_exist_notfoud (
         echo.
         echo   %ESC%[32m    Template для модов%ESC%[0m%ESC%[46G : !result!
 		REM copy lua mods files to working dir (every next run its will be copied to right places)
-        copy "!result!\*.lua"  "!WORKING_DIR!\">nul
+        setlocal DisableDelayedExpansion
+        copy "%result%\*.lua"  "%WORKING_DIR%\">nul
     ) 
-    mkdir "!cluster_folder_full_path!"
-    echo.    %ESC%[32m  Генерируем конфигурацию кластера...%ESC%[0m%ESC%[46G : "!cluster_folder_full_path!"
-    xcopy "%~dp0%!DST_cluster_templates_folder!\*.*" "!cluster_folder_full_path!\" /e>nul
-    echo cluster_name = %cluster_name% >> !cluster_folder_full_path!\cluster.ini
+    mkdir "%cluster_folder_full_path%"
+    echo.    %ESC%[32m  Генерируем конфигурацию кластера...%ESC%[0m%ESC%[46G : "%cluster_folder_full_path%"
+    xcopy "%~dp0%DST_cluster_templates_folder%\*.*" "%cluster_folder_full_path%\" /E>nul
+    cd /D "%cluster_folder_full_path%"
+	if not defined NewConfigCreated (
+ 		echo cluster_name = %DST_cluster_folder:)=^)%>>"cluster.ini"
+	) else (
+         echo cluster_name = %cluster_name:)=^)%>>"cluster.ini"
+    )
+    rem setlocal EnableDelayedExpansion
     echo.
     echo.   
     echo.   
     echo.::::
     echo.::::
     echo.::::
-    echo.::::  %ESC%[92mКонфигурация создана успешно^^!^^!^^!%ESC%[0m
+    echo.::::  %ESC%[92mКонфигурация создана успешно^!^!^!%ESC%[0m
     echo.::::
-    echo.::::  %ESC%[32mПапка с настройками сервера %ESC%[0m%ESC%[46G : "!cluster_folder_full_path!"
-    echo.::::  %ESC%[32mКонфигурация скрипта %ESC%[0m%ESC%[46G : "!ServerConfigFile!"
-    echo.::::  %ESC%[32mФайлы настройки модов находятся в%ESC%[0m%ESC%[46G : "!WORKING_DIR!\"
+    echo.::::  %ESC%[32mПапка с настройками сервера %ESC%[0m%ESC%[46G : "%cluster_folder_full_path%"
+    echo.::::  %ESC%[32mКонфигурация скрипта %ESC%[0m%ESC%[46G : "%ServerConfigFile%"
+    echo.::::  %ESC%[32mФайлы настройки модов находятся в%ESC%[0m%ESC%[46G : "%WORKING_DIR%\"
     echo.::::  При добавлении модов не забывайте менять оба файла:
     echo.::::      - dedicated_server_mods_setup.lua
     echo.::::      - modoverrides.lua
     echo.::::   
     echo.::::   
-    echo.::::  %ESC%[93mВНИМАНИЕ ^^!^^!^^!%ESC%[0m
-    echo.::::  %ESC%[93mСервер не будет запущен без вашего токена^^!%ESC%[0m
+    echo.::::  %ESC%[93mВНИМАНИЕ ^!^!^!%ESC%[0m
+    echo.::::  %ESC%[93mСервер не будет запущен без вашего токена^!%ESC%[0m
     echo.::::  Впишите токен в cluster_token.txt
     echo.::::  Копипаст либо скачайте с
     echo.::::  https://accounts.klei.com/login?goto=https://accounts.klei.com/account/game/servers?game=DontStarveTogether
@@ -290,10 +306,11 @@ if not defined check_exist_notfoud (
     echo.
     echo.
     echo.%ESC%[93mСейчас скрипт будет остановлен.%ESC%[0m
+    setlocal EnableDelayedExpansion
     set AREYOUSURE=
     set /P AREYOUSURE="Открыть cluster_token.txt в Блокноте? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
     if /I "!AREYOUSURE!"=="Y" (
-        start notepad.exe "!cluster_folder_full_path!\cluster_token.txt"
+        start notepad.exe "%cluster_folder_full_path%\cluster_token.txt"
     )
     exit /b
 ) 
@@ -433,15 +450,11 @@ for %%a in (%DST_shards%) do (
         )
     )
     set console_title_runtime=---   !DST_persistent_storage_root!\!DST_conf_dir!\!DST_cluster_folder!\!DST_shard!   ---   Started  !HH!:!MM!:!SS!   %DATE%   ---
-    start "!HKCU_Console_Key!" cmd /C "title !console_title_runtime! & %DST_exe% " ^
-            "-persistent_storage_root !WORKING_DIR!\%DST_persistent_storage_root% " ^
-            "-conf_dir %DST_conf_dir% " ^
-            "-cluster %DST_cluster_folder%  " ^
-            "-shard !DST_shard! ""
+    start "!HKCU_Console_Key!" cmd /C "title !console_title_runtime! && !DST_exe!  -persistent_storage_root !WORKING_DIR!\%DST_persistent_storage_root%  -conf_dir %DST_conf_dir%  -cluster %DST_cluster_folder%  -shard !DST_shard!"
 )
 REM            :: -console has been deprecated Use the [MISC] / console_enabled setting instead. "-console " ^
 
-timeout 5
+timeout 25
 exit /b
 
 
@@ -459,7 +472,19 @@ REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
-:: Hack for ERRORLEVEL (doesn't update inside control blocks).
+
+:setkey
+    set setkey_result=%1
+    rem echo "%setkey_result%"
+    exit /b
+
+:setval
+    set setval_result=%*
+    set "%setkey_result%=%setval_result%"
+    exit /b
+
+
+:: Hack for ERRORLEVEL (doesn't updates inside control blocks).
 :: (helper for dynamic variable name like !string%ERRORLEVEL%!
 :getvar
     set result=!%1!
@@ -528,7 +553,7 @@ REM     Optional param : %2 - if %2==confirm then confirmation will be asked.
                 exit /b
             )
         )
-        echo.        %ESC%[32mПробуем создать... %ESC%[0m%ESC%[46G  : "%~1"
+        echo.        %ESC%[32mПробуем создать... %ESC%[0m%ESC%[46G : "%~1"
         mkdir "%~1"
         call :check_exist "%~1" rshift
         if defined check_exist_notfoud (
@@ -560,10 +585,12 @@ REM     Optional param : %2 - if %2==confirm then confirmation will be asked.
     exit /b
 
 
-REM
-REM Mandatory param - config name
-REM
 :Generate_Config
+REM
+REM Mandatory param %1 - config file name
+REM
+:: trouble with ")" - it cannot be echoed without escaping
+set "new_cluster_folder_escaped=%new_cluster_folder:)=^)%"
 (echo ^
 [                                                                                             ]^
 
@@ -599,7 +626,7 @@ DST_my_mods_templates_folder    = MyModsTemplates^
 
 [STEAM]^
 
-DST_steamcmd_dir    		    = !USERPROFILE!\steamcmd^
+DST_steamcmd_dir    		    = %USERPROFILE%\steamcmd^
 
 DST_dst_bin                  	= steamapps\common\Don't Starve Together Dedicated Server\bin64^
 
@@ -623,7 +650,7 @@ DST_persistent_storage_root  	= KleiDedicated^
 
 DST_conf_dir                 	= DoNotStarveTogether^
 
-DST_cluster_folder             	= !new_cluster_folder!^
+DST_cluster_folder             	= %new_cluster_folder_escaped%^
 
 ^
 
