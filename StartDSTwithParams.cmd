@@ -2,7 +2,7 @@
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.4
+set SCRIPT_VER=v1.2.5
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -115,7 +115,7 @@ if exist "!ServerConfigFile!" (
     ) else (
 :Get_Cluster_Name_again
         echo.
-        set /p cluster_name="%ESC%[93mCluster Name: "
+        set /p cluster_name="%ESC%[93mCluster Name:%ESC%[0m "
         echo.
         echo.%ESC%[0m
         if not defined cluster_name (
@@ -140,12 +140,8 @@ if exist "!ServerConfigFile!" (
         set NewConfigCreated=True
     )
 )
+if not defined NewConfigCreated set cluster_name=Stupid trouble with undefined variable below
 
-if defined NewConfigCreated (
-    echo Кластер: "%cluster_name%"
-) else (
-   set cluster_name=Stupid trouble with undefined variable below
-)
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::  Load parameters from ServerConfigFile into local variables
@@ -222,10 +218,12 @@ if defined check_exist_notfoud (
 
 ::
 ::
-set cluster_folder_full_path=%WORKING_DIR%\%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster_folder%
+set CLUSTER_FOLDER_FULL_PATH=%WORKING_DIR%\%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster_folder%
 ::
 ::
-call :check_exist "%cluster_folder_full_path%"
+
+call :check_exist "%CLUSTER_FOLDER_FULL_PATH%"
+set cluster_not_found=%ESC%[0G%ESC%[93m     Кластер "%DST_cluster_folder%" не найден. Создаем с параметрами по умолчанию.%ESC%[0m
 if not defined check_exist_notfoud (
     REM cluster exist
     if defined NewConfigCreated (
@@ -234,23 +232,28 @@ if not defined check_exist_notfoud (
         echo.
         echo.%ESC%[93mКластер с таким именем уже существует.%ESC%[0m
 		echo.%ESC%[93mБудет использован новый конфигурационный файл с существующим кластером.%ESC%[0m
+        setlocal EnableDelayedExpansion
         set AREYOUSURE=
         set /P AREYOUSURE="Продолжить? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
         if /I "!AREYOUSURE!" NEQ "Y" (
             echo. & echo.    Просто выходим из скрипта  &REM Just exiting
             exit
         )
+        setlocal DisableDelayedExpansion
     )
 ) else (
     echo.
-    echo.%ESC%[93m     Кластер "%DST_cluster_folder%" не найден. Создаем с параметрами по умолчанию.%ESC%[0m
-    call :check_exist "%~dp0%DST_my_mods_templates_folder%"
+    echo.
+REM     call :stupid_echo "%ESC%[93mКластер "%DST_cluster_folder%" не найден. Создаем с параметрами по умолчанию.%ESC%[0m"
+    echo.
+    echo.     Проверяем наличие шаблонов для модов
+    call :check_exist "%~dp0%DST_my_mods_templates_folder%" rshift
     if defined check_exist_notfoud (
         echo.%ESC%[41m    Mod set templates folder "%DST_my_mods_templates_folder%" not found. Add mods manually.%ESC%[0m
     ) else (
         cd /D "%~dp0%DST_my_mods_templates_folder%"
         echo.
-        echo.    Select mods set:
+        echo.%ESC%[93m        Select mods set:%ESC%[0m
         set /a i=0
         setlocal EnableDelayedExpansion
         FOR /D %%G in ("*") DO (
@@ -258,27 +261,35 @@ if not defined check_exist_notfoud (
             set var!i!=%%~nxG
             set dntemp=%%~nxG
             call :Trim dntemp
-            echo.        !i!. !dntemp!
+            call :stupid_echo "          !i!. !dntemp!"
         )
         call :choice_trim 123456789 !i!
         CHOICE /T 31 /D 1 /C "!choice_trim_RESULT!"
         call :getvar var!ERRORLEVEL!
         echo.
-        echo   %ESC%[32m    Template для модов%ESC%[0m%ESC%[46G : !result!
+        call :stupid_echo "%ESC%[32m        Template для модов%ESC%[0m%ESC%[46G : %ESC%[93m!result!%ESC%[0m"
+        set selected_mods=%ESC%[0G::::%ESC%[32m  Template для модов%ESC%[0m%ESC%[46G : !result!
 		REM copy lua mods files to working dir (every next run its will be copied to right places)
         setlocal DisableDelayedExpansion
         copy "%result%\*.lua"  "%WORKING_DIR%\">nul
     ) 
-    mkdir "%cluster_folder_full_path%"
-    echo.    %ESC%[32m  Генерируем конфигурацию кластера...%ESC%[0m%ESC%[46G : "%cluster_folder_full_path%"
-    xcopy "%~dp0%DST_cluster_templates_folder%\*.*" "%cluster_folder_full_path%\" /E>nul
-    cd /D "%cluster_folder_full_path%"
-	if not defined NewConfigCreated (
- 		echo cluster_name = %DST_cluster_folder:)=^)%>>"cluster.ini"
+    mkdir "%CLUSTER_FOLDER_FULL_PATH%"
+    call :stupid_echo "%ESC%[32m        Генерируем конфигурацию кластера...%ESC%[0m%ESC%[46G : '%CLUSTER_FOLDER_FULL_PATH%'"
+    xcopy "%~dp0%DST_cluster_templates_folder%\*.*" "%CLUSTER_FOLDER_FULL_PATH%\" /E>nul
+    cd /D "%CLUSTER_FOLDER_FULL_PATH%"
+	if not defined NewConfigCreated ( 
+		:: Old config used. No Cluster name at this point availible.
+		:: Cluster name stored in cluster.ini, but if we are here - new cluster will be generated with old config.
+		:: So we need Cluster name. 2 variants: ask user, or use DST_cluster_folder as Cluster name.
+		:: Since this situation is quite rare and Cluster name can be changed later in cluster.ini,
+		:: we will use DST_cluster_folder without asking user
+        call :save_cluster_name_to_ini "cluster_name = %DST_cluster_folder%"
+        set stupid_cluster_name="%ESC%[0G::::  %ESC%[32mИмя кластера (видно в списке серверов) %ESC%[0m%ESC%[46G : %DST_cluster_folder%"%ESC%[1D 
 	) else (
-         echo cluster_name = %cluster_name:)=^)%>>"cluster.ini"
+        call :save_cluster_name_to_ini "cluster_name = %cluster_name%"
+        set stupid_cluster_name="%ESC%[0G::::  %ESC%[32mИмя кластера (видно в списке серверов) %ESC%[0m%ESC%[46G : %cluster_name%"%ESC%[1D 
     )
-    rem setlocal EnableDelayedExpansion
+    rem setlocal EnableDelayedExpansion 
     echo.
     echo.   
     echo.   
@@ -287,12 +298,18 @@ if not defined check_exist_notfoud (
     echo.::::
     echo.::::  %ESC%[92mКонфигурация создана успешно^!^!^!%ESC%[0m
     echo.::::
-    echo.::::  %ESC%[32mПапка с настройками сервера %ESC%[0m%ESC%[46G : "%cluster_folder_full_path%"
+    set stupid_cluster_name
+    set selected_mods
+REM    set tmpstr=%ESC%[0G::::  %ESC%[32mПапка с настройками сервера %ESC%[0m%ESC%[46G : "%CLUSTER_FOLDER_FULL_PATH%"
+REM    set tmpstr
+    echo.::::  %ESC%[32mПапка с настройками сервера %ESC%[0m%ESC%[46G : "%CLUSTER_FOLDER_FULL_PATH%"
     echo.::::  %ESC%[32mКонфигурация скрипта %ESC%[0m%ESC%[46G : "%ServerConfigFile%"
     echo.::::  %ESC%[32mФайлы настройки модов находятся в%ESC%[0m%ESC%[46G : "%WORKING_DIR%\"
+    echo.::::   
+    echo.::::   
     echo.::::  При добавлении модов не забывайте менять оба файла:
-    echo.::::      - dedicated_server_mods_setup.lua
-    echo.::::      - modoverrides.lua
+    echo.::::        - dedicated_server_mods_setup.lua
+    echo.::::        - modoverrides.lua
     echo.::::   
     echo.::::   
     echo.::::  %ESC%[93mВНИМАНИЕ ^!^!^!%ESC%[0m
@@ -310,7 +327,9 @@ if not defined check_exist_notfoud (
     set AREYOUSURE=
     set /P AREYOUSURE="Открыть cluster_token.txt в Блокноте? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
     if /I "!AREYOUSURE!"=="Y" (
-        start notepad.exe "%cluster_folder_full_path%\cluster_token.txt"
+        setlocal DisableDelayedExpansion
+        start notepad.exe "%CLUSTER_FOLDER_FULL_PATH%\cluster_token.txt"
+        REM call :stupid_start
     )
     exit /b
 ) 
@@ -336,31 +355,34 @@ if defined file_not_found (
 
 REM find existing
 echo.
-
-for %%a in (%DST_shards%) do (
-    set DST_shard=%%a
-    set shard_title=!DST_persistent_storage_root!\!DST_conf_dir!\!DST_cluster_folder!\!DST_shard!
-    set "cmd=tasklist /FI "IMAGENAME eq cmd.exe" /v /fo csv | find "!shard_title!""
-    for /F "usebackq tokens=2,9 delims=," %%p in (`!cmd!`) do (
-        set pid_with_quotes=%%p
-        set pid_without_quotes=!pid_with_quotes:"=!
-        set !pid_without_quotes!=%%q
-        set pids_list=!pids_list! !pid_without_quotes!
-    )
+set shard_title_common_part=%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster_folder%
+set "cmd=tasklist /FI "IMAGENAME eq cmd.exe" /v /fo csv ^| find "%shard_title_common_part%""
+for /F "usebackq tokens=2,9 delims=," %%p in (`%cmd%`) do (
+    setlocal EnableDelayedExpansion
+    set pid_with_quotes=%%p
+    set pid_without_quotes=!pid_with_quotes:"=!
+    set !pid_without_quotes!=%%q
+    set pids_list=!pids_list! !pid_without_quotes!
+    setlocal DisableDelayedExpansion
 )
+
 
 if defined pids_list (
     echo.
-    echo.%ESC%[41m ------         ВНИМАНИЕ ^^!^^!^^!        ------ %ESC%[0m    &REM WARNING
-    echo.%ESC%[41m ------   Найдены запущенные шарды  ------ %ESC%[0m          &REM Running shards found  
+    echo.%ESC%[41m ----------------------            ВНИМАНИЕ ^!^!^!           ---------------------- %ESC%[0m    &REM WARNING
+    echo.%ESC%[41m ----------------------      Найдены запущенные шарды     ---------------------- %ESC%[0m          &REM Running shards found  
     echo.
     for %%a in (%pids_list%) do (
-        echo %%a: !%%a!
+        setlocal EnableDelayedExpansion
+        set aaaaa=!%%a:--=!
+        echo %%a: !aaaaa:  =!
+        setlocal DisableDelayedExpansion
         REM taskkill /PID %%a
     )
     echo.
     REM set /P AREYOUSURE="Kill running shards (if "NO" script will exit immediately) Y/[N] ?"
     set /P AREYOUSURE="Шарды уже запущены! Остановить их? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
+    setlocal EnableDelayedExpansion
     if /I "!AREYOUSURE!" NEQ "Y" (
         echo. & echo.Просто выходим из скрипта  &REM Just exiting
         exit /b
@@ -372,6 +394,7 @@ if defined pids_list (
         echo. & echo.Шарды остановлены. Можно запускать снова & echo. &REM Shards killed. Time to start new ones
         pause
     )
+    setlocal DisableDelayedExpansion
 )
 
 
@@ -411,21 +434,17 @@ if not defined key_pressed (
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-cd /D "!DST_steamcmd_dir!/!DST_dst_bin!"
+cd /D "%DST_steamcmd_dir%/%DST_dst_bin%"
 
 
 REM Copy 2 mods files: to dst bin and to cluster shards (inside shards loop)
-copy "!WORKING_DIR!\dedicated_server_mods_setup.lua" ..\mods\
+copy "%WORKING_DIR%\dedicated_server_mods_setup.lua" ..\mods\
 
 for %%a in (%DST_shards%) do (
-    set DST_shard=%%a
-    copy "!WORKING_DIR!\modoverrides.lua"  "!cluster_folder_full_path!\!DST_shard!\"
-    set HH=%TIME: =0%
-    set HH=!HH:~0,2!
-    set MM=!TIME:~3,2!
-    set SS=!TIME:~6,2!
-    set HKCU_Console_Key=!DST_cluster_folder!_!DST_shard!
-    if defined HKCU_Console_Key reg delete "hkcu\console\!HKCU_Console_Key!" /f > nul
+    copy "%WORKING_DIR%\modoverrides.lua"  "%CLUSTER_FOLDER_FULL_PATH%\%%a\"
+    setlocal EnableDelayedExpansion
+    set HKCU_Console_Key=!DST_cluster_folder!_%%a
+    if defined HKCU_Console_Key reg delete "hkcu\console\!HKCU_Console_Key!" /f 2>nul
     if defined %%a (
         for /F "tokens=1-2" %%X in ("!%%a!") do (
             if not "%%X"=="" (
@@ -441,18 +460,18 @@ for %%a in (%DST_shards%) do (
         )
         if defined xpos (if defined ypos (
                 set /a "pos=(!ypos! << 16) + !xpos!"
-                reg add "hkcu\console\!HKCU_Console_Key!" /v WindowPosition /t REG_DWORD /d "!pos!" /f
+                reg add "hkcu\console\!HKCU_Console_Key!" /v WindowPosition /t REG_DWORD /d "!pos!" /f 2>nul
             ) else (
-                echo Y coord not defined
+                REM  Y coord not defined
             )
         ) else (
-            echo X coord not defined
+            REM X coord not defined
         )
     )
-    set console_title_runtime=---   !DST_persistent_storage_root!\!DST_conf_dir!\!DST_cluster_folder!\!DST_shard!   ---   Started  !HH!:!MM!:!SS!   %DATE%   ---
-    start "!HKCU_Console_Key!" cmd /C "title !console_title_runtime! && !DST_exe!  -persistent_storage_root !WORKING_DIR!\%DST_persistent_storage_root%  -conf_dir %DST_conf_dir%  -cluster %DST_cluster_folder%  -shard !DST_shard!"
+    setlocal DisableDelayedExpansion
+    call :set_very_long_command "%%a"
+
 )
-REM            :: -console has been deprecated Use the [MISC] / console_enabled setting instead. "-console " ^
 
 timeout 25
 exit /b
@@ -496,6 +515,33 @@ REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     set choice_trim_RESULT=%1
     set choice_trim_RESULT=!choice_trim_RESULT:~0,%2!
     exit /b
+
+
+:stupid_echo
+    :: %~1 used! String must be double quoted!
+    echo %~1
+    exit /b
+
+
+:set_very_long_command
+:: %~1  -->    "!DST_shard!"
+:: start title must be equal to HKCU_Console_Key   -->   %DST_cluster_folder%_%%a
+    set HH=%TIME: =0%
+    set HH=%HH:~0,2%
+    set MM=%TIME:~3,2%
+    set SS=%TIME:~6,2%
+    set console_title_runtime=---   %DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster_folder%\%~1   ---   Started  %HH%:%MM%:%SS%   %DATE%   ---
+
+    :: -console has been deprecated Use the [MISC] / console_enabled setting instead.
+    set very_long_command="title %console_title_runtime% && %DST_exe%  -persistent_storage_root %WORKING_DIR%\%DST_persistent_storage_root%  -conf_dir %DST_conf_dir%  -cluster %DST_cluster_folder%  -shard %~1"
+    start "%DST_cluster_folder%_%~1" cmd /C %very_long_command%
+    exit /b
+
+
+:save_cluster_name_to_ini
+    echo %~1 >>"cluster.ini"
+    exit /b
+
 
 
 :StupidCmdBreaksEscSequences
