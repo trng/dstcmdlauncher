@@ -8,6 +8,7 @@
 * Windows 7 unsupported (some patch needed).
 * Windows 10 supported (build 17063 and above).
 * Guided first run.
+* Non-latin characters, spaces and special symbols allowed in pathnames.
 * Changable master and/or caves autostart.
 * Version check (can be disabled).
 
@@ -29,5 +30,8 @@ Put your token to cluster_token.txt inside cluster folder.
 .
 
 ## Advanced usage
-You can specify config file name in the command line (for example - via shortcut on desktop).
-With different configs you can run multiple dst servers on one computer.
+Create empty folder. Create shortcut to `StartDSTwithParams.cmd` within this folder. Run `StartDSTwithParams.cmd` via shortcut. All necessary filese/folders will be created within this folder.
+
+Also - you can specify config file name in the command line via shortcut (for example - on desktop).
+
+With different configs/folders you can run multiple dst servers on one computer. Only one copy of `StartDSTwithParams.cmd` and templates folders needed.
