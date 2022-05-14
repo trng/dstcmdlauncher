@@ -1,23 +1,42 @@
 @echo off
+if "%~1" == "/goto" goto :%~2       &REM See :NewConsole label below for details
+chcp 65001 > nul                    &REM Non-latin strings encoding
+
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.5
+set SCRIPT_VER=v1.2.6
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 :: WORKING_DIR - variable with folder by default for config file and cluster folder (changeable via .conf)
 :: It MUST be set without EnableDelayedExpansion (with EnableDelayedExpansion sign "!" in the path will be big problem)
 set WORKING_DIR=%cd%
+::Todo: set WORKING_DIR from config file path from command line argument
 
-chcp 65001 > nul                    &REM Non-latin strings encoding
-if "%~1" == "/goto" goto :%~2       &REM See :NewConsole label below for details
 
 :: Hack for define placeholders:  chr(09) to %TAB% (for ltrim | rtrim in :Trim)
 ::                                chr(27) to %ESC% (for echo coloring)
 echo.091B33>%TEMP%\sdstwp & certUtil -decodeHex -f "%TEMP%\sdstwp" "%TEMP%\sdstwp" > nul & set /P SPECHAR=<"%TEMP%\sdstwp"
 set TAB=%SPECHAR:~0,1%
 set ESC=%SPECHAR:~1,1%
+
+
+REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+REM :: Check the status of 8.3
+REM :: If 8.3 disabled on all volumes on the system - show warning
+REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+for /f "delims=" %%A in ('fsutil behavior query disable8dot3 ^| find /C ": 1"') do (
+    if "%%A"=="1" (
+        echo %ESC%[93mWARNING^!%ESC%[0m
+        echo %ESC%[93m    Short names ^(8.3^) is disabled on all volumes on the system.%ESC%[0m
+        echo %ESC%[93m    If you use non-Latin symbols, spaces, and some special symblos in files/folders names,%ESC%[0m
+        echo %ESC%[93m    there may be problems.
+        echo    ^(Script uses shortnames to resolve this trouble^).%ESC%[0m
+        pause
+    )
+)
+
 
 REM Check new version on github. If this script file has read-only attribute, the new version check will be skipped.
 call :Trim SCRIPT_VER
@@ -55,12 +74,11 @@ if "!attributes:~1,1!"=="-" (
                 echo.
                 pause
             )
-
         )
     )
 )
-
 setlocal DisableDelayedExpansion 
+
 if %~1.==. (
     set "ServerConfigFile=%WORKING_DIR%\StartDSTwithParams.conf"
 ) else (
@@ -74,11 +92,8 @@ echo.
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::  Check for config file (use existing or generate new)
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-setlocal EnableDelayedExpansion
-
-if exist "!ServerConfigFile!" (
-    echo.Конфигурационный файл найден   %ESC%[46G : "!ServerConfigFile!"     &REM Configuration file found
+if exist "%ServerConfigFile%" (
+    call :stupid_echo "Конфигурационный файл найден   %ESC%[46G : '%ServerConfigFile%'"     &REM Configuration file found
     echo.
 ) else (
     echo.
@@ -106,8 +121,9 @@ if exist "!ServerConfigFile!" (
     echo.
     pause
     echo. & echo. & echo. & echo.
-    echo.%ESC%[41mКонфигурационный файл ^( !ServerConfigFile! ^) не найден.%ESC%[0m
+    call :stupid_echo "%ESC%[41mКонфигурационный файл ^( %ServerConfigFile% ^) не найден.%ESC%[0m"
     echo. 
+    setlocal EnableDelayedExpansion
     set /P AREYOUSURE="Создать с параметрами по умолчанию? (Если "НЕТ", то просто выходим из скрипта) [Y]/N? "
     if /I "!AREYOUSURE!" EQU "N" (
         echo. & echo.    Просто выходим из скрипта  &REM Just exiting
@@ -126,9 +142,9 @@ if exist "!ServerConfigFile!" (
         set cluster_name=!cluster_name:"=!
         call :Trim cluster_name
         set new_cluster_folder=!cluster_name!
-        echo.    %ESC%[32m Пробуем создать...%ESC%[0m%ESC%[46G : "!ServerConfigFile!"
 
         setlocal DisableDelayedExpansion 
+        call :stupid_echo "%ESC%[32m     Пробуем создать...%ESC%[0m%ESC%[46G : '%ServerConfigFile%'"
         call :Generate_Config "%ServerConfigFile%"
         call :check_exist "%ServerConfigFile%"
 
@@ -148,8 +164,8 @@ if not defined NewConfigCreated set cluster_name=Stupid trouble with undefined v
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 echo. & echo.Пробуем загрузить параметры...                &REM Trying to load
 
-setlocal EnableDelayedExpansion
-for /f "usebackq delims== tokens=1,2 eol=[" %%a in ("!ServerConfigFile!") do (
+REM setlocal EnableDelayedExpansion
+for /f "usebackq delims== tokens=1,2 eol=[" %%a in ("%ServerConfigFile%") do (
     setlocal DisableDelayedExpansion
     call :setkey %%a
     call :setval %%b
@@ -223,7 +239,6 @@ set CLUSTER_FOLDER_FULL_PATH=%WORKING_DIR%\%DST_persistent_storage_root%\%DST_co
 ::
 
 call :check_exist "%CLUSTER_FOLDER_FULL_PATH%"
-set cluster_not_found=%ESC%[0G%ESC%[93m     Кластер "%DST_cluster_folder%" не найден. Создаем с параметрами по умолчанию.%ESC%[0m
 if not defined check_exist_notfoud (
     REM cluster exist
     if defined NewConfigCreated (
@@ -244,9 +259,11 @@ if not defined check_exist_notfoud (
 ) else (
     echo.
     echo.
-REM     call :stupid_echo "%ESC%[93mКластер "%DST_cluster_folder%" не найден. Создаем с параметрами по умолчанию.%ESC%[0m"
+    call :stupid_echo "%ESC%[93mКластер не найден         %ESC%[46G : '%DST_cluster_folder%'.%ESC%[0m"
+    call :stupid_echo "%ESC%[32m(Создаем с параметрами по умолчанию)%ESC%[0m"
     echo.
-    echo.     Проверяем наличие шаблонов для модов
+   
+    echo.        Проверяем наличие шаблонов для модов
     call :check_exist "%~dp0%DST_my_mods_templates_folder%" rshift
     if defined check_exist_notfoud (
         echo.%ESC%[41m    Mod set templates folder "%DST_my_mods_templates_folder%" not found. Add mods manually.%ESC%[0m
@@ -278,11 +295,11 @@ REM     call :stupid_echo "%ESC%[93mКластер "%DST_cluster_folder%" не �
     xcopy "%~dp0%DST_cluster_templates_folder%\*.*" "%CLUSTER_FOLDER_FULL_PATH%\" /E>nul
     cd /D "%CLUSTER_FOLDER_FULL_PATH%"
 	if not defined NewConfigCreated ( 
-		:: Old config used. No Cluster name at this point availible.
-		:: Cluster name stored in cluster.ini, but if we are here - new cluster will be generated with old config.
-		:: So we need Cluster name. 2 variants: ask user, or use DST_cluster_folder as Cluster name.
-		:: Since this situation is quite rare and Cluster name can be changed later in cluster.ini,
-		:: we will use DST_cluster_folder without asking user
+		REM Old config used. No Cluster name at this point availible.
+		REM Cluster name stored in cluster.ini, but if we are here - new cluster will be generated with old config.
+		REM So we need Cluster name. 2 variants: ask user, or use DST_cluster_folder as Cluster name.
+		REM Since this situation is quite rare and Cluster name can be changed later in cluster.ini,
+		REM we will use DST_cluster_folder without asking user
         call :save_cluster_name_to_ini "cluster_name = %DST_cluster_folder%"
         set stupid_cluster_name="%ESC%[0G::::  %ESC%[32mИмя кластера (видно в списке серверов) %ESC%[0m%ESC%[46G : %DST_cluster_folder%"%ESC%[1D 
 	) else (
@@ -523,6 +540,24 @@ REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     exit /b
 
 
+:convertTo8.3
+:: %~1                  - path
+:: convertTo8.3_result  - if it possible, path converted to 8.3, if no - return %1
+    for %%A in ("%~1") do set convertTo8.3_result=%%~sA
+    exit /b
+
+
+:convertTo8.3onlyfilename
+:: %~1                  - path (doublequoted!)
+:: convertTo8.3_result  - if it possible, path converted to 8.3, if no - return %1
+    call :c83ofn_helper "%~s1"
+    exit /b
+
+:c83ofn_helper
+    set convertTo8.3onlyfilename_result=%~n1
+    exit /b
+
+
 :set_very_long_command
 :: %~1  -->    "!DST_shard!"
 :: start title must be equal to HKCU_Console_Key   -->   %DST_cluster_folder%_%%a
@@ -532,8 +567,10 @@ REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     set SS=%TIME:~6,2%
     set console_title_runtime=---   %DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster_folder%\%~1   ---   Started  %HH%:%MM%:%SS%   %DATE%   ---
 
+    call :convertTo8.3onlyfilename "%CLUSTER_FOLDER_FULL_PATH%"
+    call :convertTo8.3 "%WORKING_DIR%\%DST_persistent_storage_root%"
     :: -console has been deprecated Use the [MISC] / console_enabled setting instead.
-    set very_long_command="title %console_title_runtime% && %DST_exe%  -persistent_storage_root %WORKING_DIR%\%DST_persistent_storage_root%  -conf_dir %DST_conf_dir%  -cluster %DST_cluster_folder%  -shard %~1"
+    set very_long_command="title %console_title_runtime% && %DST_exe%  -persistent_storage_root %convertTo8.3_result% -conf_dir %DST_conf_dir%  -cluster %convertTo8.3onlyfilename_result%  -shard %~1"
     start "%DST_cluster_folder%_%~1" cmd /C %very_long_command%
     exit /b
 
