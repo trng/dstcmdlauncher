@@ -5,7 +5,7 @@ chcp 65001 > nul                    &REM Non-latin strings encoding
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.6
+set SCRIPT_VER=v1.2.7
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -376,27 +376,22 @@ set shard_title_common_part=%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cl
 set "cmd=tasklist /FI "IMAGENAME eq cmd.exe" /v /fo csv ^| find "%shard_title_common_part%""
 for /F "usebackq tokens=2,9 delims=," %%p in (`%cmd%`) do (
     setlocal EnableDelayedExpansion
+    if not defined first_time_loop (
+        set first_time_loop=false
+        echo.     &REM WARNING Running shards found  
+        echo.%ESC%[41m ----------------------            ВНИМАНИЕ ^^!^^!^^!           ---------------------- %ESC%[0m
+        echo.%ESC%[41m ----------------------      Найдены запущенные шарды     ---------------------- %ESC%[0m
+        echo.
+    )
     set pid_with_quotes=%%p
     set pid_without_quotes=!pid_with_quotes:"=!
-    set !pid_without_quotes!=%%q
     set pids_list=!pids_list! !pid_without_quotes!
     setlocal DisableDelayedExpansion
+    call :stupid_excl_m %%p %%q
 )
 
 
 if defined pids_list (
-    echo.
-    echo.%ESC%[41m ----------------------            ВНИМАНИЕ ^!^!^!           ---------------------- %ESC%[0m    &REM WARNING
-    echo.%ESC%[41m ----------------------      Найдены запущенные шарды     ---------------------- %ESC%[0m          &REM Running shards found  
-    echo.
-    for %%a in (%pids_list%) do (
-        setlocal EnableDelayedExpansion
-        set aaaaa=!%%a:--=!
-        echo %%a: !aaaaa:  =!
-        setlocal DisableDelayedExpansion
-        REM taskkill /PID %%a
-    )
-    echo.
     REM set /P AREYOUSURE="Kill running shards (if "NO" script will exit immediately) Y/[N] ?"
     set /P AREYOUSURE="Шарды уже запущены! Остановить их? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
     setlocal EnableDelayedExpansion
@@ -537,6 +532,15 @@ REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :stupid_echo
     :: %~1 used! String must be double quoted!
     echo %~1
+    exit /b
+
+:stupid_excl_m
+    set tmpstr=%~2
+    set tmpstr=%tmpstr:--=%
+    set tmpstr=%tmpstr:  =%
+    set tmpstr=%tmpstr:~0,-3%
+    echo %1 %tmpstr:Started=%
+    echo.
     exit /b
 
 
