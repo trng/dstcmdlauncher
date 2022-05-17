@@ -10,6 +10,7 @@
 * Guided first run.
 * Non-latin characters, spaces and special symbols allowed in pathnames.
 * Changable master and/or caves autostart.
+* World backup with rotation (last 5 "pre-run" backups are kept).
 * Version check (can be disabled).
 
 ## Install
