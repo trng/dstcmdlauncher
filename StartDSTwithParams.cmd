@@ -5,7 +5,7 @@ chcp 65001 > nul                    &REM Non-latin strings encoding
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.7
+set SCRIPT_VER=v1.2.8
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -207,7 +207,7 @@ setlocal DisableDelayedExpansion
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::  Check for mandatory folders and files
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
+echo.
 echo.Проверка наличия необходимых файлов...
 
 call :check_and_create_folder "%DST_steamcmd_dir%" confirm
@@ -408,6 +408,45 @@ if defined pids_list (
     )
     setlocal DisableDelayedExpansion
 )
+
+
+REM ==============================================================================
+REM
+REM          World backup rotation (5 last pre-run backups stored)
+REM 
+REM ==============================================================================
+cd "%WORKING_DIR%"
+mkdir worldbackup 2>NUL
+
+dir /a:-d /b "worldbackup\%DST_cluster_folder%*.*" 2>NUL | find /c /v "" > "%TEMP%sdstwp"
+set /p backups_count=<"%TEMP%sdstwp"
+echo.
+if %backups_count% EQU 0 ( echo.No existing backups. A new one will be created.  ) else ( echo Existing backups: )
+
+SET count=%backups_count%
+REM  ^| find "Лонг терм (!) кластер trng"
+FOR /f "tokens=*" %%G IN ('dir /a:-d /b "worldbackup\%DST_cluster_folder%*.*" 2^>NUL ') DO (call :subroutine "%%G")
+GOTO :after_subroutine
+
+:subroutine
+    set /A c_no=%backups_count%-%count%+1
+    if %count% LEQ 5 ( 
+        echo.%ESC%[32m     %c_no% ^( leave  ^)%ESC%[0m%ESC%[46G : %1
+    ) else (
+        echo.%ESC%[92m     %c_no% ^( remove ^)%ESC%[0m%ESC%[46G : %1
+        del worldbackup\%1
+    )
+    set /a count-=1
+    GOTO :eof
+:after_subroutine
+
+cd "%DST_persistent_storage_root%"
+cd "%DST_conf_dir%"
+set HH=%TIME: =0%
+set HH=%HH:~0,2%
+set MM=%TIME:~3,2%
+set SS=%TIME:~6,2%
+tar -czf "..\..\worldbackup\%DST_cluster_folder%_%DATE%_%HH%-%MM%-%SS%.tar.gz" "%DST_cluster_folder%"
 
 
 
