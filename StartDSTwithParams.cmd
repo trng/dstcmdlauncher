@@ -5,7 +5,7 @@ chcp 65001 > nul                    &REM Non-latin strings encoding
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.8
+set SCRIPT_VER=v1.2.9
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -63,7 +63,7 @@ if "!attributes:~1,1!"=="-" (
             echo.
             echo | set /p=%ESC%[0m    [1,2,3]?
             CHOICE /T 20 /D 1 /C "123">nul
-            if "!ERRORLEVEL!"=="2" (start explorer "https://github.com/trng/dstcmdlauncher" & exit)
+            if "!ERRORLEVEL!"=="2" (start explorer "https://github.com/trng/dstcmdlauncher" & goto :EOF)
             if "!ERRORLEVEL!"=="3" (
                 echo.
                 echo.
@@ -127,7 +127,7 @@ if exist "%ServerConfigFile%" (
     set /P AREYOUSURE="Создать с параметрами по умолчанию? (Если "НЕТ", то просто выходим из скрипта) [Y]/N? "
     if /I "!AREYOUSURE!" EQU "N" (
         echo. & echo.    Просто выходим из скрипта  &REM Just exiting
-        exit /b
+        goto :EOF
     ) else (
 :Get_Cluster_Name_again
         echo.
@@ -137,7 +137,7 @@ if exist "%ServerConfigFile%" (
         if not defined cluster_name (
             echo.    %ESC%[41mИмя кластера не может быть пустым. Попробуйте еще раз либо Ctrl-C для выхода...%ESC%[0m
             goto :Get_Cluster_Name_again
-            pause & exit
+            pause & goto :EOF
         )
         set cluster_name=!cluster_name:"=!
         call :Trim cluster_name
@@ -151,7 +151,7 @@ if exist "%ServerConfigFile%" (
         if defined check_exist_notfoud (
             echo.Невозможно создать конфигурационный файл "%ServerConfigFile%".
             echo.Выходим из скрипта.
-            pause & exit
+            pause & goto :EOF
         )
         set NewConfigCreated=True
     )
@@ -199,7 +199,7 @@ if defined noargs (
     echo.
     echo.%ESC%[41m^Скрипт будет остановлен.%ESC%[0m                       &REM Script will be stopped.
     echo.
-    pause & exit /b
+    pause & goto :EOF
 )
 
 setlocal DisableDelayedExpansion
@@ -252,7 +252,7 @@ if not defined check_exist_notfoud (
         set /P AREYOUSURE="Продолжить? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
         if /I "!AREYOUSURE!" NEQ "Y" (
             echo. & echo.    Просто выходим из скрипта  &REM Just exiting
-            exit
+            goto :EOF
         )
         setlocal DisableDelayedExpansion
     )
@@ -348,7 +348,7 @@ REM    set tmpstr
         start notepad.exe "%CLUSTER_FOLDER_FULL_PATH%\cluster_token.txt"
         REM call :stupid_start
     )
-    exit /b
+    goto :EOF
 ) 
 
 
@@ -362,7 +362,7 @@ if defined file_not_found (
     echo.
     echo.Не найдены папки для шардов.
     echo.Скрипт будет остановлен.  
-    pause & exit /b
+    pause & goto :EOF
 )
 
 
@@ -397,7 +397,7 @@ if defined pids_list (
     setlocal EnableDelayedExpansion
     if /I "!AREYOUSURE!" NEQ "Y" (
         echo. & echo.Просто выходим из скрипта  &REM Just exiting
-        exit /b
+        goto :EOF
     ) else (
         echo.Пытаемся остановить запущенные шарды...   &REM Trying to kill shards
         for %%a in (%pids_list%) do (
@@ -457,7 +457,7 @@ tar -czf "..\..\worldbackup\%DST_cluster_folder%_%DATE%_%HH%-%MM%-%SS%.tar.gz" "
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 start "Start steamcmd for load/update/validate DST dedicated server application." cmd /c "%0" /goto NewConsole
-timeout 5
+timeout 7
 exit
 
 :NewConsole
@@ -525,7 +525,7 @@ for %%a in (%DST_shards%) do (
 )
 
 timeout 25
-exit /b
+exit
 
 
 
@@ -625,15 +625,10 @@ REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
 :StupidCmdBreaksEscSequences
-:: A hack against various console commands that break escape sequences for no apparent reason.
-:: Its very similar like this commands call Win32 function SetConsoleMode 
-:: and reset terminal with ENABLE_VIRTUAL_TERMINAL_INPUT ENABLE_VIRTUAL_TERMINAL_PROCESSING flags
-:: But after call to any label with "exit /b" termial begin execute escape sequences again.
-:: 
-:: A hack against various console commands that break escape sequences for no apparent reason.
-:: Its very similar like this commands call Win32 function SetConsoleMode and
-:: reset terminal with cleared flags ENABLE_VIRTUAL_TERMINAL_INPUT ENABLE_VIRTUAL_TERMINAL_PROCESSING.
-:: But after call to any label with "exit /b" current termial begin execute escape sequences again.
+REM A hack against various console commands that break escape sequences for no apparent reason.
+REM Its very similar like this commands call Win32 function SetConsoleMode 
+REM and reset terminal with ENABLE_VIRTUAL_TERMINAL_INPUT ENABLE_VIRTUAL_TERMINAL_PROCESSING flags
+REM But after call to any label with "exit /b" termial begin execute escape sequences again.
     exit /b
 
 :Trim
@@ -672,19 +667,21 @@ REM     Optional param : %2 - if %2==confirm then confirmation will be asked.
     if defined check_exist_notfoud (
         if "%~2"=="confirm" (
             echo.%ESC%[93m         Создать "%~1"?%ESC%[0m
+            setlocal EnableDelayedExpansion
             set AREYOUSURE=
             set /P AREYOUSURE="%ESC%[93m     (Если "НЕТ", то просто выходим из скрипта) Y/[N]?%ESC%[0m"
             if /I "!AREYOUSURE!" NEQ "Y" (
                 echo. & echo.    Просто выходим из скрипта  &REM Just exiting
-                exit /b
+                goto :EOF
             )
+            setlocal DisableDelayedExpansion
         )
         echo.        %ESC%[32mПробуем создать... %ESC%[0m%ESC%[46G : "%~1"
         mkdir "%~1"
         call :check_exist "%~1" rshift
         if defined check_exist_notfoud (
             echo.        Невозможно создать папку "%~1". Продолжение невозможно.
-            pause & exit
+            pause & goto :EOF
         )
     )
     exit /b
