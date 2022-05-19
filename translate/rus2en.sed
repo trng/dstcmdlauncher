@@ -34,6 +34,8 @@ s/Продолжить? (Если "НЕТ", то просто выходим и�
 s/Кластер не найден/Cluster not found/g
 s/Создаем с параметрами по умолчанию/Create with default parameters/g
 s/Проверяем наличие шаблонов для модов/Checking for mods templates availability/g
+s/Папка наборов модов "%DST_my_mods_templates_folder%" не найдена. Добавьте моды вручную позже/Mod sets folder "%DST_my_mods_templates_folder%" not found. Add mods manually later/g
+s/Выберите набор модов/Select mods set/g
 s/Template для модов/Template for mods/g
 s/Генерируем конфигурацию кластера/Generating the cluster configuration/g
 s/Имя кластера (видно в списке серверов)/Cluster name (showed in servers list)/g

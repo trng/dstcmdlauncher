@@ -5,7 +5,7 @@ chcp 65001 > nul                    &REM Non-latin strings encoding
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.10
+set SCRIPT_VER=v1.2.11
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -266,11 +266,11 @@ if not defined check_exist_notfoud (
     echo.        Checking for mods templates availability
     call :check_exist "%~dp0%DST_my_mods_templates_folder%" rshift
     if defined check_exist_notfoud (
-        echo.%ESC%[41m    Папка наборов модов "%DST_my_mods_templates_folder%" не найдена. Добавьте моды вручную позже.%ESC%[0m
+        echo.%ESC%[41m    Mod sets folder "%DST_my_mods_templates_folder%" not found. Add mods manually later.%ESC%[0m
     ) else (
         cd /D "%~dp0%DST_my_mods_templates_folder%"
         echo.
-        echo.%ESC%[93m        Выберите набор модов:%ESC%[0m
+        echo.%ESC%[93m        Select mods set:%ESC%[0m
         set /a i=0
         setlocal EnableDelayedExpansion
         FOR /D %%G in ("*") DO (
