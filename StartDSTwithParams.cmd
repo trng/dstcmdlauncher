@@ -5,7 +5,7 @@ chcp 65001 > nul                    &REM Non-latin strings encoding
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.9
+set SCRIPT_VER=v1.2.10
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -51,15 +51,15 @@ if "!attributes:~1,1!"=="-" (
         set script_ver_online=!script_ver_online:~15!
         if not "!SCRIPT_VER!"=="!script_ver_online!" (
             echo. & echo.
-            echo.%ESC%[93mNew version availiable on github.%ESC%[0m
+            echo.%ESC%[93mНа github доступна новая версия.%ESC%[0m
             echo.
-            echo.    Running version  : "%SCRIPT_VER%"
-            echo.    Version on github: "!script_ver_online!"
+            echo.    Запущенная версия : "%SCRIPT_VER%"
+            echo.    Версия на github  : "!script_ver_online!"
             echo.
-            echo.What do you want to do:
-            echo.    1. Continiue load dedicated server ^(default, 20 sec timeout^).
-            echo.    2. Stop script and goto github.
-            echo.    3. Do not check new versions in the future for this cluster ^(not recommended^).
+            echo.Что вы хотите сделать:
+            echo.    1. Продолжить загрузку выделенного сервера ^(по умолчанию, 20 сек таймаут^).
+            echo.    2. Остановить скрипт и перейти на github.
+            echo.    3. Не проверять наличие новых версий в будущем для этого кластера ^(не рекомендуется^).
             echo.
             echo | set /p=%ESC%[0m    [1,2,3]?
             CHOICE /T 20 /D 1 /C "123">nul
@@ -67,9 +67,9 @@ if "!attributes:~1,1!"=="-" (
             if "!ERRORLEVEL!"=="3" (
                 echo.
                 echo.
-                echo.%ESC%[93mWARNING^^!^^!^^!%ESC%[0m
-                echo.    To skip check new versions %ESC%[93mread-only attribute%ESC%[0m will be applied to this script.
-                echo.    You can re-enable check for new version by removing read-only attribute.
+                echo.%ESC%[93mВНИМАНИЕ^^!^^!^^!%ESC%[0m
+                echo.    Для пропуска проверки новых версий %ESC%[93mатрибут read-only%ESC%[0m будет назначен этому скрипту.
+                echo.    Вы можете возобновить проверку новых версий убрав атрибут read-only.
                 attrib.exe +R "%~0"
                 echo.
                 pause

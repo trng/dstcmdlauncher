@@ -5,7 +5,7 @@ chcp 65001 > nul                    &REM Non-latin strings encoding
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.9
+set SCRIPT_VER=v1.2.10
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -53,8 +53,8 @@ if "!attributes:~1,1!"=="-" (
             echo. & echo.
             echo.%ESC%[93mNew version availiable on github.%ESC%[0m
             echo.
-            echo.    Running version  : "%SCRIPT_VER%"
-            echo.    Version on github: "!script_ver_online!"
+            echo.    Running version   : "%SCRIPT_VER%"
+            echo.    Version on github : "!script_ver_online!"
             echo.
             echo.What do you want to do:
             echo.    1. Continiue load dedicated server ^(default, 20 sec timeout^).
@@ -67,7 +67,7 @@ if "!attributes:~1,1!"=="-" (
             if "!ERRORLEVEL!"=="3" (
                 echo.
                 echo.
-                echo.%ESC%[93mWARNING^^!^^!^^!%ESC%[0m
+                echo.%ESC%[93mATTENTION^^!^^!^^!%ESC%[0m
                 echo.    To skip check new versions %ESC%[93mread-only attribute%ESC%[0m will be applied to this script.
                 echo.    You can re-enable check for new version by removing read-only attribute.
                 attrib.exe +R "%~0"

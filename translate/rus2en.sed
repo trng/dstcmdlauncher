@@ -1,3 +1,12 @@
+s/На github доступна новая версия/New version availiable on github/g
+s/Запущенная версия/Running version  /g
+s/Версия на github  /Version on github /g
+s/Что вы хотите сделать/What do you want to do/g
+s/Продолжить загрузку выделенного сервера ^(по умолчанию, 20 сек таймаут^)/Continiue load dedicated server ^(default, 20 sec timeout^)/g
+s/Остановить скрипт и перейти на github/Stop script and goto github/g
+s/Не проверять наличие новых версий в будущем для этого кластера ^(не рекомендуется^)/Do not check new versions in the future for this cluster ^(not recommended^)/g
+s/Для пропуска проверки новых версий %ESC%\[93mатрибут read-only%ESC%\[0m будет назначен этому скрипту/To skip check new versions %ESC%\[93mread-only attribute%ESC%\[0m will be applied to this script/g
+s/Вы можете возобновить проверку новых версий убрав атрибут read-only/You can re-enable check for new version by removing read-only attribute/g
 s/Конфигурационный файл найден/Configuration file found/g
 s/Скрипт запуска выделенного сервера/Script to start a dedicated server/g
 s/Для запуска обязательно наличие конфигурационного файла./Configuraton file must exist for server start.          /g
