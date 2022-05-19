@@ -4,7 +4,9 @@
 	--The Workshop id can be found at the end of the url to the mod's Workshop page.
 	--Example: http://steamcommunity.com/sharedfiles/filedetails/?id=350811795
 	--ServerModSetup("350811795")
-ServerModSetup("909425662")
+ServerModSetup("666155465")
+ServerModSetup("375859599")
+
 
 --ServerModCollectionSetup takes a string of a specific mod's Workshop id. It will download all the mods in the collection and install them to the mod directory on boot.
 	--The Workshop id can be found at the end of the url to the collection's Workshop page.

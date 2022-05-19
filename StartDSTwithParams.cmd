@@ -97,31 +97,31 @@ if exist "%ServerConfigFile%" (
     echo.
 ) else (
     echo.
-    echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    echo.::::                                                                 ::::
-    echo.::::    StartDSTwithParams %SCRIPT_VER%                    %ESC%[69G ::::
-    echo.::::    Copyright ^(c^) trng                                           ::::
-    echo.::::                                                                 ::::
-    echo.::::                                                                 ::::
-    echo.::::    Скрипт запуска выделенного сервера Don't Starve together.    ::::
-    echo.::::    Для запуска обязательно наличие конфигурационного файла.     ::::
-    echo.::::    Два варианта запуска скрипта:                                ::::
-    echo.::::                                                                 ::::
-    echo.::::        1. StartDSTwithParams.cmd                                ::::
-    echo.::::          ^(используется дефолтное имя: StartDSTwithParams.conf^)  ::::
-    echo.::::                                                                 ::::
-    echo.::::        2. StartDSTwithParams.cmd config_file_name.conf          ::::
-    echo.::::                                                                 ::::
-    echo.::::    Если файла конфигурации с таким именем не существует,        ::::
-    echo.::::    генерируется конфиг с дефолтными параметрами.                ::::
-    echo.::::                                                                 ::::
-    echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    echo.:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    echo.::::                                                                            ::::
+    echo.::::    StartDSTwithParams %SCRIPT_VER%                               %ESC%[80G ::::
+    echo.::::    Copyright ^(c^) trng                                          %ESC%[80G ::::
+    echo.::::                                                                            ::::
+    echo.::::                                                                            ::::
+    echo.::::    Скрипт запуска выделенного сервера Don't Starve together.     %ESC%[80G ::::
+    echo.::::    Для запуска обязательно наличие конфигурационного файла.      %ESC%[80G ::::
+    echo.::::    Два варианта запуска скрипта:                                 %ESC%[80G ::::
+    echo.::::                                                                            ::::
+    echo.::::        1. StartDSTwithParams.cmd                                 %ESC%[80G ::::
+    echo.::::          ^(используется дефолтное имя: StartDSTwithParams.conf^) %ESC%[80G ::::
+    echo.::::                                                                            ::::
+    echo.::::        2. StartDSTwithParams.cmd config_file_name.conf           %ESC%[80G ::::
+    echo.::::                                                                            ::::
+    echo.::::    Если файла конфигурации с таким именем не существует,         %ESC%[80G ::::
+    echo.::::    генерируется конфиг с дефолтными параметрами.                 %ESC%[80G ::::
+    echo.::::                                                                            ::::
+    echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     echo.
     pause
     echo. & echo. & echo. & echo.
-    call :stupid_echo "%ESC%[41mКонфигурационный файл ^( %ServerConfigFile% ^) не найден.%ESC%[0m"
+    call :stupid_echo "%ESC%[41mКонфигурационный файл ( %ServerConfigFile% ) не найден.%ESC%[0m"
     echo. 
     setlocal EnableDelayedExpansion
     set /P AREYOUSURE="Создать с параметрами по умолчанию? (Если "НЕТ", то просто выходим из скрипта) [Y]/N? "
@@ -424,7 +424,6 @@ echo.
 if %backups_count% EQU 0 ( echo.No existing backups. A new one will be created.  ) else ( echo Existing backups: )
 
 SET count=%backups_count%
-REM  ^| find "Лонг терм (!) кластер trng"
 FOR /f "tokens=*" %%G IN ('dir /a:-d /b "worldbackup\%DST_cluster_folder%*.*" 2^>NUL ') DO (call :subroutine "%%G")
 GOTO :after_subroutine
 
