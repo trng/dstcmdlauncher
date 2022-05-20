@@ -1,4 +1,4 @@
-**Current version **
+**Current version v1.2.14**
 
 # Don't Starve Together cmd launcher.
 
