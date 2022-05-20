@@ -5,14 +5,14 @@ chcp 65001 > nul                    &REM Non-latin strings encoding
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.13
+set SCRIPT_VER=v1.2.14
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 :: WORKING_DIR - variable with folder by default for config file and cluster folder (changeable via .conf)
 :: It MUST be set without EnableDelayedExpansion (with EnableDelayedExpansion sign "!" in the path will be big problem)
+:: It can be changed later if the config file is specified with a full path
 set WORKING_DIR=%cd%
-::Todo: set WORKING_DIR from config file path from command line argument
 
 
 :: Hack for define placeholders:  chr(09) to %TAB% (for ltrim | rtrim in :Trim)
@@ -23,7 +23,7 @@ set ESC=%SPECHAR:~1,1%
 
 
 REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-REM :: Check the status of 8.3
+REM :: Check the status of 8.3 on the system
 REM :: If 8.3 disabled on all volumes on the system - show warning
 REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 for /f "delims=" %%A in ('fsutil behavior query disable8dot3 ^| find /C ": 1"') do (
@@ -63,6 +63,8 @@ if "!attributes:~1,1!"=="-" (
             echo.
             echo | set /p=%ESC%[0m    [1,2,3]?
             CHOICE /T 20 /D 1 /C "123">nul
+            echo.
+            echo.
             if "!ERRORLEVEL!"=="2" (start explorer "https://github.com/trng/dstcmdlauncher" & goto :EOF)
             if "!ERRORLEVEL!"=="3" (
                 echo.
@@ -77,12 +79,39 @@ if "!attributes:~1,1!"=="-" (
         )
     )
 )
-setlocal DisableDelayedExpansion 
 
-if %~1.==. (
+setlocal DisableDelayedExpansion 
+if "%~s1"=="" (
     set "ServerConfigFile=%WORKING_DIR%\StartDSTwithParams.conf"
 ) else (
-    set ServerConfigFile=%~1
+    set "WORKING_DIR=%~dp1"
+    set "ServerConfigFile=%~f1"
+)
+
+call :set_working_drive "%WORKING_DIR%"
+goto :end_of_working_drive
+
+:set_working_drive
+    set WORKING_DRIVE=%~d1
+    exit /b
+
+:end_of_working_drive
+
+
+REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+REM :: Check the status of 8.3 on drive with config
+REM :: If 8.3 disabled on all volumes on the system - show warning
+REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+for /f "delims=" %%A in ('fsutil behavior query disable8dot3 %WORKING_DRIVE% ^| find /C ": 1"') do (
+    if "%%A"=="1" (
+        echo %ESC%[93mWARNING^!%ESC%[0m
+        echo %ESC%[93m    Short names ^(8.3^) is disabled on working volume.%ESC%[0m
+        echo %ESC%[93m    If you use non-Latin symbols, spaces, and some special symblos in files/folders names,%ESC%[0m
+        echo %ESC%[93m    there may be problems.
+        echo    ^(Script uses shortnames to resolve this trouble^).%ESC%[0m
+        pause
+    )
 )
 
 echo.
@@ -145,6 +174,7 @@ if exist "%ServerConfigFile%" (
 
         setlocal DisableDelayedExpansion 
         call :stupid_echo "%ESC%[32m     Trying to create...%ESC%[0m%ESC%[46G : '%ServerConfigFile%'"
+        call :check_and_create_folder "%WORKING_DIR%"
         call :Generate_Config "%ServerConfigFile%"
         call :check_exist "%ServerConfigFile%"
 
@@ -157,6 +187,12 @@ if exist "%ServerConfigFile%" (
     )
 )
 if not defined NewConfigCreated set cluster_name=Stupid trouble with undefined variable below
+
+
+REM 
+REM If config specified with full path in command line, we should change working dir.
+REM 
+cd /D "%WORKING_DIR%"
 
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -210,9 +246,9 @@ setlocal DisableDelayedExpansion
 echo.
 echo.Checking for required files...
 
-call :check_and_create_folder "%DST_steamcmd_dir%" confirm
+call :check_and_create_folder "%DST_steamcmd_dir%" confirm || goto :eof
 REM call :Ocheck_and_create_folder "!WORKING_DIR!\!DST_persistent_storage_root!"
-call :check_and_create_folder "%WORKING_DIR%\%DST_persistent_storage_root%\%DST_conf_dir%"
+call :check_and_create_folder "%WORKING_DIR%\%DST_persistent_storage_root%\%DST_conf_dir%" || goto :eof
 set file_not_found=
 
 set temp_file_name=%DST_steamcmd_dir%\steamcmd.exe
@@ -355,7 +391,6 @@ REM    set tmpstr
     goto :EOF
 ) 
 
-
 set master_shard=
 for %%a in (%DST_shards%) do (
     call :check_exist "%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster_folder%\%%a"
@@ -419,7 +454,7 @@ REM
 REM          World backup rotation (5 last pre-run backups stored)
 REM 
 REM ==============================================================================
-cd "%WORKING_DIR%"
+cd /D "%WORKING_DIR%"
 mkdir worldbackup 2>NUL
 
 dir /a:-d /b "worldbackup\%DST_cluster_folder%*.*" 2>NUL | find /c /v "" > "%TEMP%sdstwp"
@@ -440,7 +475,8 @@ GOTO :after_subroutine
         del worldbackup\%1
     )
     set /a count-=1
-    GOTO :eof
+    exit /b
+
 :after_subroutine
 
 cd "%DST_persistent_storage_root%"
@@ -489,7 +525,6 @@ if not defined key_pressed (
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 cd /D "%DST_steamcmd_dir%/%DST_dst_bin%"
-
 
 REM Copy 2 mods files: to dst bin and to cluster shards (inside shards loop)
 copy "%WORKING_DIR%\dedicated_server_mods_setup.lua" ..\mods\
@@ -675,7 +710,7 @@ REM     Optional param : %2 - if %2==confirm then confirmation will be asked.
             set /P AREYOUSURE="%ESC%[93m     (If "NO" - just exit from script) Y/[N]?%ESC%[0m"
             if /I "!AREYOUSURE!" NEQ "Y" (
                 echo. & echo.    Just exiting ^(from script^)  &REM Just exiting
-                goto :EOF
+                exit /b 1
             )
             setlocal DisableDelayedExpansion
         )
@@ -684,7 +719,8 @@ REM     Optional param : %2 - if %2==confirm then confirmation will be asked.
         call :check_exist "%~1" rshift
         if defined check_exist_notfoud (
             echo.        Cannot create folder "%~1". Cannot continue
-            pause & goto :EOF
+            pause
+            exit /b 1
         )
     )
     exit /b

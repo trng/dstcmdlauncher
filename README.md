@@ -12,6 +12,7 @@
 * Changable master and/or caves autostart.
 * World backup with rotation (last 5 "pre-run" backups are kept).
 * Version check (can be disabled).
+* Multilanguage (auto generated using sed with predefined strings substitutions).
 
 ## Install
 Clone. Or download and unzip (don't forget to unzip before run).
