@@ -9,14 +9,25 @@
 
 
 
-
-
 #
-# Auto-generate translated script using sed and predefined sed's rules
+# Auto-generate translated StartDSTwithParams using sed and predefined sed's rules
 #
 #
-CHANGED=$(git diff --name-only --cached --diff-filter=ACMR | grep -c "StartDSTwithParams.cmd")
-if  [ "$CHANGED" != "0" ]; then
-    sed -b -f translate/rus2en.sed StartDSTwithParams.cmd > StartDSTwithParamsEng.cmd
-    git add StartDSTwithParamsEng.cmd
+CHANGED=$(git diff --name-only --cached --diff-filter=ACMR | grep -c "StartDSTwithParamsRus.cmd")
+if  [ "$CHANGED" -ne "0" ]; then
+    if [ -f StartDSTwithParamsEng.cmd ]; then
+        date_eng=$(stat -c "%Y" StartDSTwithParamsEng.cmd)
+        date_rus=$(stat -c "%Y" StartDSTwithParamsRus.cmd)
+        echo "date_eng: $date_eng\ndate_rus: $date_rus"
+        if [ "$date_eng" -gt "$date_rus" ]; then
+            echo "Time of last modification StartDSTwithParamsEng greater than StartDSTwithParamsRus."
+            exit 1
+        fi
+    else
+        echo "StartDSTwithParamsEng.cmd not found"
+    fi
+    sed -b -f translate/rus2en.sed StartDSTwithParamsRus.cmd > StartDSTwithParamsEng.cmd;
+    git add StartDSTwithParamsEng.cmd;
+else
+    echo "StartDSTwithParamsRus.cmd not changed"
 fi

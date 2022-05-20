@@ -5,7 +5,7 @@ chcp 65001 > nul                    &REM Non-latin strings encoding
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.11
+set SCRIPT_VER=v1.2.13
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -44,7 +44,7 @@ set attributes=%~af0
 setlocal EnableDelayedExpansion
 if "!attributes:~1,1!"=="-" (
     del %TEMP%\sdstwp 2> nul & del %TEMP%\sdstwp2 2> nul
-    curl -L -s -o "%TEMP%\sdstwp" "https://raw.githubusercontent.com/trng/dstcmdlauncher/main/StartDSTwithParams.cmd" > nul
+    curl -L -s -o "%TEMP%\sdstwp" "https://raw.githubusercontent.com/trng/dstcmdlauncher/main/StartDSTwithParamsRus.cmd" > nul
     if exist "%TEMP%\sdstwp" findstr /b /l /c:"set SCRIPT_VER=" "%TEMP%\sdstwp" > "%TEMP%\sdstwp2" & set /P script_ver_online=<"%TEMP%\sdstwp2"
     if defined script_ver_online (
         call :Trim script_ver_online
@@ -121,7 +121,7 @@ if exist "%ServerConfigFile%" (
     echo.
     pause
     echo. & echo. & echo. & echo.
-    call :stupid_echo "%ESC%[41mКонфигурационный файл ( %ServerConfigFile% ) не найден.%ESC%[0m"
+    call :stupid_echo "%ESC%[41m Configuration file ( %ServerConfigFile% ) not found. %ESC%[0m"
     echo. 
     setlocal EnableDelayedExpansion
     set /P AREYOUSURE="Create with default params? (If "NO" - just exit from script) [Y]/N? "
@@ -259,14 +259,17 @@ if not defined check_exist_notfoud (
 ) else (
     echo.
     echo.
-    call :stupid_echo "%ESC%[93mCluster not found         %ESC%[46G : '%DST_cluster_folder%'.%ESC%[0m"
+    call :stupid_echo "%ESC%[93mCluster not found         %ESC%[46G : '%DST_cluster_folder%'%ESC%[0m"
     call :stupid_echo "%ESC%[32m(Create with default parameters)%ESC%[0m"
     echo.
    
-    echo.        Checking for mods templates availability
+    echo.     Checking for mods templates availability
     call :check_exist "%~dp0%DST_my_mods_templates_folder%" rshift
     if defined check_exist_notfoud (
-        echo.%ESC%[41m    Mod sets folder "%DST_my_mods_templates_folder%" not found. Add mods manually later.%ESC%[0m
+        set selected_mods=%ESC%[0G::::%ESC%[32m  Template for mods%ESC%[0m%ESC%[46G : -
+        echo.
+        echo.       %ESC%[41m Mods sets folder "%DST_my_mods_templates_folder%" not found. Add mods manually later. %ESC%[0m
+        echo.
     ) else (
         cd /D "%~dp0%DST_my_mods_templates_folder%"
         echo.
@@ -291,7 +294,8 @@ if not defined check_exist_notfoud (
         copy "%result%\*.lua"  "%WORKING_DIR%\">nul
     ) 
     mkdir "%CLUSTER_FOLDER_FULL_PATH%"
-    call :stupid_echo "%ESC%[32m        Generating the cluster configuration...%ESC%[0m%ESC%[46G : '%CLUSTER_FOLDER_FULL_PATH%'"
+    echo.
+    call :stupid_echo "%ESC%[32m     Generating the cluster configuration...%ESC%[0m%ESC%[46G : '%CLUSTER_FOLDER_FULL_PATH%'"
     xcopy "%~dp0%DST_cluster_templates_folder%\*.*" "%CLUSTER_FOLDER_FULL_PATH%\" /E>nul
     cd /D "%CLUSTER_FOLDER_FULL_PATH%"
 	if not defined NewConfigCreated ( 

@@ -14,7 +14,7 @@ s/Два варианта запуска скрипта:/Two ways to run the scr
 s/(используется дефолтное имя: StartDSTwithParams.conf^)/(default name used: StartDSTwithParams.conf^)         /g
 s/Если файла конфигурации с таким именем не существует,/If no config file found with this name,              /g
 s/генерируется конфиг с дефолтными параметрами./config with default params will be generated./g
-s/Конфигурационный файл ^( %ServerConfigFile% ^) не найден/Configuration file ^( %ServerConfigFile% ^) not found/g
+s/Конфигурационный файл ( %ServerConfigFile% ) не найден/Configuration file ( %ServerConfigFile% ) not found/g
 s/Создать с параметрами по умолчанию? (Если "НЕТ", то просто выходим из скрипта)/Create with default params? (If "NO" - just exit from script)/g
 s/Просто выходим из скрипта/Just exiting ^(from script^)/g
 s/Имя кластера не может быть пустым. Попробуйте еще раз либо Ctrl-C для выхода/Cluster name cannot be empty. Try again or Ctrl-C for exit/g
@@ -34,7 +34,7 @@ s/Продолжить? (Если "НЕТ", то просто выходим и�
 s/Кластер не найден/Cluster not found/g
 s/Создаем с параметрами по умолчанию/Create with default parameters/g
 s/Проверяем наличие шаблонов для модов/Checking for mods templates availability/g
-s/Папка наборов модов "%DST_my_mods_templates_folder%" не найдена. Добавьте моды вручную позже/Mod sets folder "%DST_my_mods_templates_folder%" not found. Add mods manually later/g
+s/Папка наборов модов "%DST_my_mods_templates_folder%" не найдена. Добавьте моды вручную позже/Mods sets folder "%DST_my_mods_templates_folder%" not found. Add mods manually later/g
 s/Выберите набор модов/Select mods set/g
 s/Template для модов/Template for mods/g
 s/Генерируем конфигурацию кластера/Generating the cluster configuration/g
