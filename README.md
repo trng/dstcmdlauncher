@@ -25,14 +25,14 @@ First run - guided. All parameters except *Cluster name* have default values.
 
 Configuration file will be created in the current folder.
 
-Put your token to cluster_token.txt inside cluster folder.
+Put your token to cluster_token.txt inside cluster folder (you will be prompted to do this during first run).
 
 (Generate token here: https://accounts.klei.com/login?goto=https://accounts.klei.com/account/game/servers?game=DontStarveTogether)
 
 
 
 ## Advanced usage
-Create empty folder. Create shortcut to `StartDSTwithParams.cmd` within this folder. Edit shortcut and set working dir to this folder. Run `StartDSTwithParams.cmd` via shortcut. All necessary filese/folders will be created within this folder.
+Create empty folder. Create shortcut to `StartDSTwithParams.cmd` within this folder. Edit shortcut and set working dir to this folder. Run `StartDSTwithParams.cmd` via shortcut. All necessary files/folders will be created within this folder.
 
 Also - you can specify config file name in the command line via shortcut (for example - on desktop).
 
