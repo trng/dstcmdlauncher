@@ -13,7 +13,7 @@
 * World backup with rotation (last 5 "pre-run" backups are kept).
 * Version check (can be disabled).
 * Multilanguage (auto generated using sed with predefined strings substitutions).
-* Optional: Lua interpreter can be used for auto-generate dedicated_server_mods_setup.lua (based on modoverrides.lua).
+* *Optional:* Lua interpreter can be used for auto-generate dedicated_server_mods_setup.lua (based on modoverrides.lua).
 
 ## Install
 Clone. Or download and unzip (don't forget to unzip before run).
