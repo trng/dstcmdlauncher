@@ -33,8 +33,14 @@ Put your token to cluster_token.txt inside cluster folder (you will be prompted 
 
 
 ## Advanced usage
+#### Shortcuts to different folders
 Create empty folder. Create shortcut to `StartDSTwithParams.cmd` within this folder. Edit shortcut and set working dir to this folder. Run `StartDSTwithParams.cmd` via shortcut. All necessary files/folders will be created within this folder.
 
-Also - you can specify config file name in the command line via shortcut (for example - on desktop).
+Also - you can specify config file name in the script's command line via shortcut (for example - on desktop).
 
 With different configs/folders you can run multiple dst servers on one computer. Only one copy of `StartDSTwithParams.cmd` and templates folders needed.
+
+#### Lua interpreter 
+If your system has Lua interpreter - add path to it in %PATH% environment variable. Lua interpreter can be used for auto-generate dedicated_server_mods_setup.lua (based on modoverrides.lua). Also - you can put lua executable (with library) to working directory. Or fill LUA_exe_full_path in the config file.
+
+*Lua interpreter can be downloaded for free (one of lightweight lua interpreter is also on github).*
