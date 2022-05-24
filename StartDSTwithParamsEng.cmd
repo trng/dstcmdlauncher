@@ -5,7 +5,7 @@ chcp 65001 > nul                    &REM Non-latin strings encoding
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.14
+set SCRIPT_VER=v1.2.15
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -21,7 +21,6 @@ echo.091B33>%TEMP%\sdstwp & certUtil -decodeHex -f "%TEMP%\sdstwp" "%TEMP%\sdstw
 set TAB=%SPECHAR:~0,1%
 set ESC=%SPECHAR:~1,1%
 
-
 REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 REM :: Check the status of 8.3 on the system
 REM :: If 8.3 disabled on all volumes on the system - show warning
@@ -36,7 +35,6 @@ for /f "delims=" %%A in ('fsutil behavior query disable8dot3 ^| find /C ": 1"') 
         pause
     )
 )
-
 
 REM Check new version on github. If this script file has read-only attribute, the new version check will be skipped.
 call :Trim SCRIPT_VER
@@ -114,9 +112,7 @@ for /f "delims=" %%A in ('fsutil behavior query disable8dot3 %WORKING_DRIVE% ^| 
     )
 )
 
-echo.
-echo.
-echo.
+echo. & echo. & echo.
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::  Check for config file (use existing or generate new)
@@ -200,21 +196,17 @@ cd /D "%WORKING_DIR%"
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 echo. & echo.Trying to load parameters...                &REM Trying to load
 
-REM setlocal EnableDelayedExpansion
-for /f "usebackq delims== tokens=1,2 eol=[" %%a in ("%ServerConfigFile%") do (
+for /f "usebackq delims== tokens=1,2 eol=#" %%a in ("%ServerConfigFile%") do (
     setlocal DisableDelayedExpansion
     call :setkey %%a
     call :setval %%b
 )
-setlocal EnableDelayedExpansion
-
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-::  Checking if all required parameters are present in config file
+::  Checking is all required parameters are present in config file
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
 set mandatory_params=DST_steamcmd_dir DST_dst_bin DST_exe DST_persistent_storage_root DST_conf_dir DST_cluster_folder DST_shards DST_my_mods_templates_folder DST_cluster_templates_folder
-
+setlocal EnableDelayedExpansion
 for %%a in (%mandatory_params%) do (
     REM trick for OR statement (%%a not defined OR %%a is empty string)  
     set "or_="
@@ -229,7 +221,7 @@ for %%a in (%mandatory_params%) do (
     )
 )
 
-echo. 
+echo.
 if defined noargs (
     echo.%ESC%[41m^Additional parameters needed: %noargs%%ESC%[0m &REM Additional args needed:
     echo.
@@ -237,7 +229,6 @@ if defined noargs (
     echo.
     pause & goto :EOF
 )
-
 setlocal DisableDelayedExpansion
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -247,8 +238,8 @@ echo.
 echo.Checking for required files...
 
 call :check_and_create_folder "%DST_steamcmd_dir%" confirm || goto :eof
-REM call :Ocheck_and_create_folder "!WORKING_DIR!\!DST_persistent_storage_root!"
 call :check_and_create_folder "%WORKING_DIR%\%DST_persistent_storage_root%\%DST_conf_dir%" || goto :eof
+
 set file_not_found=
 
 set temp_file_name=%DST_steamcmd_dir%\steamcmd.exe
@@ -268,11 +259,11 @@ if defined check_exist_notfoud (
     )
 )
 
-::
-::
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:: this var used many times below
 set CLUSTER_FOLDER_FULL_PATH=%WORKING_DIR%\%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster_folder%
 ::
-::
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 call :check_exist "%CLUSTER_FOLDER_FULL_PATH%"
 if not defined check_exist_notfoud (
@@ -326,8 +317,9 @@ if not defined check_exist_notfoud (
         call :stupid_echo "%ESC%[32m        Template for mods%ESC%[0m%ESC%[46G : %ESC%[93m!result!%ESC%[0m"
         set selected_mods=%ESC%[0G::::%ESC%[32m  Template for mods%ESC%[0m%ESC%[46G : !result!
 		REM copy lua mods files to working dir (every next run its will be copied to right places)
+        cd !result!
         setlocal DisableDelayedExpansion
-        copy "%result%\*.lua"  "%WORKING_DIR%\">nul
+        copy "*.lua"  "%WORKING_DIR%\">nul
     ) 
     mkdir "%CLUSTER_FOLDER_FULL_PATH%"
     echo.
@@ -347,9 +339,7 @@ if not defined check_exist_notfoud (
         set stupid_cluster_name="%ESC%[0G::::  %ESC%[32mCluster name (showed in servers list) %ESC%[0m%ESC%[46G : %cluster_name%"%ESC%[1D 
     )
     rem setlocal EnableDelayedExpansion 
-    echo.
-    echo.   
-    echo.   
+    echo. & echo. & echo.   
     echo.::::
     echo.::::
     echo.::::
@@ -357,8 +347,6 @@ if not defined check_exist_notfoud (
     echo.::::
     set stupid_cluster_name
     set selected_mods
-REM    set tmpstr=%ESC%[0G::::  %ESC%[32mFolder with server config %ESC%[0m%ESC%[46G : "%CLUSTER_FOLDER_FULL_PATH%"
-REM    set tmpstr
     echo.::::  %ESC%[32mFolder with server config %ESC%[0m%ESC%[46G : "%CLUSTER_FOLDER_FULL_PATH%"
     echo.::::  %ESC%[32mScript config file %ESC%[0m%ESC%[46G : "%ServerConfigFile%"
     echo.::::  %ESC%[32mMods configuration files are located in%ESC%[0m%ESC%[46G : "%WORKING_DIR%\"
@@ -377,8 +365,7 @@ REM    set tmpstr
     echo.::::
     echo.::::
     echo.::::   
-    echo.
-    echo.
+    echo. & echo.
     echo.%ESC%[93mScript will be stopped now.%ESC%[0m
     setlocal EnableDelayedExpansion
     set AREYOUSURE=
@@ -404,15 +391,15 @@ if defined file_not_found (
     pause & goto :EOF
 )
 
-
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::  Shard's Loop (search running shards)
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
 REM find existing
 echo.
 set shard_title_common_part=%DST_persistent_storage_root%\%DST_conf_dir%\%DST_cluster_folder%
 set "cmd=tasklist /FI "IMAGENAME eq cmd.exe" /v /fo csv ^| find "%shard_title_common_part%""
+:check_runnig_shards_again
+set "pids_list="
 for /F "usebackq tokens=2,9 delims=," %%p in (`%cmd%`) do (
     setlocal EnableDelayedExpansion
     if not defined first_time_loop (
@@ -429,30 +416,25 @@ for /F "usebackq tokens=2,9 delims=," %%p in (`%cmd%`) do (
     call :stupid_excl_m %%p %%q
 )
 
-
 if defined pids_list (
-    REM set /P AREYOUSURE="Kill running shards (if "NO" script will exit immediately) Y/[N] ?"
+    set AREYOUSURE=
     set /P AREYOUSURE="Kill running shards? (If "NO" - just exit from script) Y/[N]? "
     setlocal EnableDelayedExpansion
     if /I "!AREYOUSURE!" NEQ "Y" (
-        echo. & echo.Just exiting ^(from script^)  &REM Just exiting
+        echo. & echo.Just exiting ^(from script^)
         goto :EOF
     ) else (
-        echo.Trying to kill runnig shards...   &REM Trying to kill shards
-        for %%a in (%pids_list%) do (
-            taskkill /PID %%a
-        )
-        echo. & echo.Shards killed. Time to start new ones & echo. &REM Shards killed. Time to start new ones
-        pause
+        setlocal DisableDelayedExpansion
+        echo.Trying to kill runnig shards...
+        for %%a in (%pids_list%) do taskkill /PID %%a
+        echo. & echo Небольшая пауза для остановки шардов...
+        timeout 3
+        goto :check_runnig_shards_again
     )
-    setlocal DisableDelayedExpansion
 )
 
-
 REM ==============================================================================
-REM
 REM          World backup rotation (5 last pre-run backups stored)
-REM 
 REM ==============================================================================
 cd /D "%WORKING_DIR%"
 mkdir worldbackup 2>NUL
@@ -487,16 +469,15 @@ set MM=%TIME:~3,2%
 set SS=%TIME:~6,2%
 tar -czf "..\..\worldbackup\%DST_cluster_folder%_%DATE%_%HH%-%MM%-%SS%.tar.gz" "%DST_cluster_folder%"
 
-
-
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::
-:: Start steamcmd.exe. Load/update/validate DST application.
+:: Start steamcmd.exe for load/update/validate DST application.
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-start "Start steamcmd for load/update/validate DST dedicated server application." cmd /c "%0" /goto NewConsole
-timeout 7
+start "Start steamcmd for load/update/validate DST dedicated server application." cmd /C "%0" /goto NewConsole
+echo. & echo Нажмите любую клавишу если вы хоитите оставить это окно открытым
+call :timeout_with_keypress_detect 10
+if defined key_pressed cmd /K
 exit
 
 :NewConsole
@@ -517,18 +498,27 @@ if not defined key_pressed (
     %DST_steamcmd_dir%\steamcmd.exe +login anonymous +app_update 343050 validate +quit
 )
 
+REM ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+REM :: If lua interpreter exists, then dedicated_server_mods_setup.lua will be generated basing on modoverrides.lua
+REM ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+cd /D "%WORKING_DIR%"
+if "%LUA_use_lua%"=="true" (
+    if exist "%LUA_exe_full_path%" (
+        set "lua_exe=%LUA_exe_full_path%"
+    ) else (
+        for /f "tokens=* usebackq" %%f in (`where lua*.exe 2^>nul`) do set "lua_exe_temp=%%f"
+        if "%ERRORLEVEL%" =="0" set lua_errorlevel_is_zero=true
+    )
+)
+if defined lua_errorlevel_is_zero set "lua_exe=%lua_exe_temp%"
+if defined lua_exe "%lua_exe%" -e "ms=dofile('modoverrides.lua');ds=io.open('dedicated_server_mods_setup.lua','w');for k,v in pairs(ms) do if v.enabled then ds:write('ServerModSetup(\"'..string.sub(k,10)..'\")\n');end;end;ds:close()"
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-::
 :: Run shards
-::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
 cd /D "%DST_steamcmd_dir%/%DST_dst_bin%"
-
 REM Copy 2 mods files: to dst bin and to cluster shards (inside shards loop)
 copy "%WORKING_DIR%\dedicated_server_mods_setup.lua" ..\mods\
-
 for %%a in (%DST_shards%) do (
     copy "%WORKING_DIR%\modoverrides.lua"  "%CLUSTER_FOLDER_FULL_PATH%\%%a\"
     setlocal EnableDelayedExpansion
@@ -583,7 +573,6 @@ REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 :setkey
     set setkey_result=%1
-    rem echo "%setkey_result%"
     exit /b
 
 :setval
@@ -754,29 +743,31 @@ REM
 :: trouble with ")" - it cannot be echoed without escaping
 set "new_cluster_folder_escaped=%new_cluster_folder:)=^)%"
 (echo ^
-[                                                                                             ]^
+#^
 
-[   Configuration file to run the script      StartDSTwithParams.cmd                          ]^
+# Configuration file to run the script      StartDSTwithParams.cmd^
 
-[   Sections are used for illustration purposes only. All params are loaded in plain list.    ]^
-
-[                                                                                             ]^
+#^
 
 ^
 
 ^
 
-[FIRST_RUN]^
+#^
 
-[   DST_cluster_templates_folder: default set of files for new cluster ^(as from Klei website^) ]^
+# FIRST RUN^
 
-[   DST_my_mods_templates_folder: Dir for mod's sets templates ^(up to 9 templates^)            ]^
+#^
 
-[       For now "mod template" is 2 files: dedicated_server_mods_setup.lua, modoverrides.lua. ]^
+#     DST_cluster_templates_folder: default set of files for new cluster ^(as from Klei website^)^
 
-[       During normal run ^(not first time^) this 2 files copies to right places every run.     ]^
+#     DST_my_mods_templates_folder: Dir for mod's sets templates ^(up to 9 templates^)^
 
-[   Both folders are located inside script folder.                                            ]^
+#           For now "mod template" is 2 files: dedicated_server_mods_setup.lua, modoverrides.lua.^
+
+#           During normal run ^(not first time^) this 2 files copies to right places every run.^
+
+#     Both folders are located inside script folder.^
 
 DST_cluster_templates_folder    = MyDediServerTemplate^
 
@@ -786,7 +777,11 @@ DST_my_mods_templates_folder    = MyModsTemplates^
 
 ^
 
-[STEAM]^
+#^
+
+# STEAM^
+
+#^
 
 DST_steamcmd_dir    		    = %USERPROFILE%\steamcmd^
 
@@ -798,15 +793,19 @@ DST_exe                         = dontstarve_dedicated_server_nullrenderer_x64.e
 
 ^
 
-[SERVER]^
+#^
 
-[   Parameters for dontstarve_dedicated_server_nullrenderer executable.                       ]^
+# SERVER^
 
-[   3 nested dirs.                                                                            ]^
+#^
 
-[    DST_persistent_storage_root relative to current dir ^(defined in WORKING_DIR varable^):    ]^
+#     Parameters for dontstarve_dedicated_server_nullrenderer executable.^
 
-[    WORKING_DIR/DST_persistent_storage_root/DST_conf_dir/DST_cluster_folder                  ]^
+#     3 nested dirs.^
+
+#     DST_persistent_storage_root relative to current dir ^(defined in WORKING_DIR varable^):^
+
+#     WORKING_DIR/DST_persistent_storage_root/DST_conf_dir/DST_cluster_folder^
 
 DST_persistent_storage_root  	= KleiDedicated^
 
@@ -818,13 +817,17 @@ DST_cluster_folder             	= %new_cluster_folder_escaped%^
 
 ^
 
-[SHARDS]^
+#^
 
-[   space separated dirnames, dirname cannot include spaces                                   ]^
+# SHARDS^
 
-[   Example: Master Caves                                                                     ]^
+#^
 
-[   First shard is master always. TODO: parse cluster.ini server.ini to find master           ]^
+#     Space separated dirnames. Dirname cannot include spaces^
+
+#     Example: Master Caves^
+
+#     First shard is master always. TODO: parse cluster.ini server.ini to find master^
 
 DST_shards                      = Master Caves^
 
@@ -832,18 +835,47 @@ DST_shards                      = Master Caves^
 
 ^
 
-[CONSOLE]^
+#^
 
-[   Screen coordinates X Y for each shard's console window ^(optional^)                         ]^
+# CONSOLE^
 
-[   Key    - shard's name ^(as listed at DST_shards^).                                          ]^
+#^
 
-[   Value  - X Y ^(space separated, may be negative for second screen at left^)                 ]^
+#     Screen coordinates X Y for each shard's console window ^(optional^).^
+
+#     Key    - shard's name ^(as listed at DST_shards^).^
+
+#     Value  - X Y ^(space separated, may be negative for second screen at left^)^
 
 Master                          = X Y^
 
 Caves                           = X Y^
 
+^
+
+^
+
+#^
+
+# LUA^
+
+#^
+
+#     Lua interpreter can be used for generating dedicated_server_mods_setup.lua.^
+
+#     If interpreter not found - you should edit both files respectively:^
+
+#     dedicated_server_mods_setup.lua, modoverrides.lua^
+
+#     If LUA_use_lua = false, lua will not used even if present in the system.^
+
+#     First of all script check for lua executable at LUA_exe_full_path ^(if defined^).^
+
+#     Next - script serarch lua*.exe via PATH variable. Last one found will be used.^
+
+LUA_use_lua                     = true^
+
+LUA_exe_full_path               =^
 
 )>%1
 exit /b
