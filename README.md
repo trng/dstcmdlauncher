@@ -1,7 +1,8 @@
 **Current version v1.2.16**
 
-# Don't Starve Together cmd launcher.
+# Don't Starve Together dedicated server launcher.
 
+* All in one cmd batch script.
 * No powershell used.
 * No WSH (wscript/cscript) used.
 * No wmi used.
