@@ -1,4 +1,4 @@
 return {
-  ["workshop-909425662"]  = { enabled = true }
+  ["workshop-909425662"]  = { configuration_options={  }, enabled = true }
 
 }
