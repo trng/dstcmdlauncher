@@ -5,7 +5,7 @@ chcp 65001 > nul                    &REM Non-latin strings encoding
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.15
+set SCRIPT_VER=v1.2.16
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -427,7 +427,7 @@ if defined pids_list (
         setlocal DisableDelayedExpansion
         echo.Trying to kill runnig shards...
         for %%a in (%pids_list%) do taskkill /PID %%a
-        echo. & echo Небольшая пауза для остановки шардов...
+        echo. & echo A little pause to stop the shards...
         timeout 3
         goto :check_runnig_shards_again
     )
@@ -475,7 +475,7 @@ tar -czf "..\..\worldbackup\%DST_cluster_folder%_%DATE%_%HH%-%MM%-%SS%.tar.gz" "
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 start "Start steamcmd for load/update/validate DST dedicated server application." cmd /C "%0" /goto NewConsole
-echo. & echo Нажмите любую клавишу если вы хоитите оставить это окно открытым
+echo. & echo Press any key if you want to leave this console window open
 call :timeout_with_keypress_detect 10
 if defined key_pressed cmd /K
 exit

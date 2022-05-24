@@ -54,7 +54,9 @@ s/Не найдены папки для шардов/Shards folders not found/g
 s/Найдены запущенные шарды/Running shards found/g
 s/Шарды уже запущены! Остановить их? (Если "НЕТ", то просто выходим из скрипта)/Kill running shards? (If "NO" - just exit from script)/g
 s/Пытаемся остановить запущенные шарды/Trying to kill runnig shards/g
+s/Небольшая пауза для остановки шардов/A little pause to stop the shards/g
 s/Шарды остановлены. Можно запускать снова/Shards killed. Time to start new ones/g
+s/Нажмите любую клавишу если вы хоитите оставить это консольное окно открытым/Press any key if you want to leave this console window open/g
 s/Каталог\/файл не найден/Folder\/file not found/g
 s/Каталог\/файл найден/Folder\/file found/g
 s/%ESC%\[93m         Создать/%ESC%\[93m         Create/g

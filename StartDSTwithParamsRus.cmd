@@ -5,7 +5,7 @@ chcp 65001 > nul                    &REM Non-latin strings encoding
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.15
+set SCRIPT_VER=v1.2.16
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -475,7 +475,7 @@ tar -czf "..\..\worldbackup\%DST_cluster_folder%_%DATE%_%HH%-%MM%-%SS%.tar.gz" "
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 start "Start steamcmd for load/update/validate DST dedicated server application." cmd /C "%0" /goto NewConsole
-echo. & echo Нажмите любую клавишу если вы хоитите оставить это окно открытым
+echo. & echo Нажмите любую клавишу если вы хоитите оставить это консольное окно открытым
 call :timeout_with_keypress_detect 10
 if defined key_pressed cmd /K
 exit
