@@ -11,7 +11,7 @@ s/Конфигурационный файл найден/Configuration file foun
 s/Скрипт запуска выделенного сервера/Script to start a dedicated server/g
 s/Для запуска обязательно наличие конфигурационного файла./Configuraton file must exist for server start.          /g
 s/Два варианта запуска скрипта:/Two ways to run the script:  /g
-s/(используется дефолтное имя: StartDSTwithParams.conf^)/(default name used: StartDSTwithParams.conf^)         /g
+s/используется дефолтное имя/default name used         /g
 s/Если файла конфигурации с таким именем не существует,/If no config file found with this name,              /g
 s/генерируется конфиг с дефолтными параметрами./config with default params will be generated./g
 s/Конфигурационный файл ( %ServerConfigFile% ) не найден/Configuration file ( %ServerConfigFile% ) not found/g

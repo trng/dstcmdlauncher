@@ -13,8 +13,8 @@
 # Auto-generate translated StartDSTwithParams using sed and predefined sed's rules
 #
 #
-fname_eng="StartDSTwithParamsEng.cmd"
-fname_rus="StartDSTwithParamsRus.cmd"
+fname_eng="DSTcmdLauncherEng.cmd"
+fname_rus="DSTcmdLauncherRus.cmd"
 CHANGED=$(git diff --name-only --cached --diff-filter=ACMR | grep -c -F "${fname_rus}")
 if  [ "$CHANGED" -ne "0" ]; then
     if [ -f StartDSTwithParamsEng.cmd ]; then
@@ -30,6 +30,6 @@ if  [ "$CHANGED" -ne "0" ]; then
             exit 3
         fi
     fi
-    sed -b -f translate/rus2en.sed ${fname_rus} > ${fname_eng};
+    sed -b -f translate/rus2eng.sed ${fname_rus} > ${fname_eng};
     git add $fname_eng;
 fi

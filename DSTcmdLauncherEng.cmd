@@ -5,7 +5,7 @@ chcp 65001 > nul                    &REM Non-latin strings encoding
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.16
+set SCRIPT_VER=v1.2.17
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -49,15 +49,16 @@ if "!attributes:~1,1!"=="-" (
         set script_ver_online=!script_ver_online:~15!
         if not "!SCRIPT_VER!"=="!script_ver_online!" (
             echo. & echo.
-            echo.%ESC%[93mНа github доступна новая версия.%ESC%[0m
+            echo %ESC%[93mDSTcmdLauncher%ESC%[0m
+            echo.%ESC%[93mNew version availiable on github.%ESC%[0m
             echo.
-            echo.    Запущенная версия : "%SCRIPT_VER%"
-            echo.    Версия на github  : "!script_ver_online!"
+            echo.    Running version   : "%SCRIPT_VER%"
+            echo.    Version on github : "!script_ver_online!"
             echo.
-            echo.Что вы хотите сделать:
-            echo.    1. Продолжить загрузку выделенного сервера ^(по умолчанию, 20 сек таймаут^).
-            echo.    2. Остановить скрипт и перейти на github.
-            echo.    3. Не проверять наличие новых версий в будущем для этого кластера ^(не рекомендуется^).
+            echo.What do you want to do:
+            echo.    1. Continiue load dedicated server ^(default, 20 sec timeout^).
+            echo.    2. Stop script and goto github.
+            echo.    3. Do not check new versions in the future for this cluster ^(not recommended^).
             echo.
             echo | set /p=%ESC%[0m    [1,2,3]?
             CHOICE /T 20 /D 1 /C "123">nul
@@ -67,9 +68,9 @@ if "!attributes:~1,1!"=="-" (
             if "!ERRORLEVEL!"=="3" (
                 echo.
                 echo.
-                echo.%ESC%[93mВНИМАНИЕ^^!^^!^^!%ESC%[0m
-                echo.    Для пропуска проверки новых версий %ESC%[93mатрибут read-only%ESC%[0m будет назначен этому скрипту.
-                echo.    Вы можете возобновить проверку новых версий убрав атрибут read-only.
+                echo.%ESC%[93mATTENTION^^!^^!^^!%ESC%[0m
+                echo.    To skip check new versions %ESC%[93mread-only attribute%ESC%[0m will be applied to this script.
+                echo.    You can re-enable check for new version by removing read-only attribute.
                 attrib.exe +R "%~0"
                 echo.
                 pause
@@ -80,7 +81,7 @@ if "!attributes:~1,1!"=="-" (
 
 setlocal DisableDelayedExpansion 
 if "%~s1"=="" (
-    set "ServerConfigFile=%WORKING_DIR%\StartDSTwithParams.conf"
+    set "ServerConfigFile=%WORKING_DIR%\DSTcmdLauncher.conf"
 ) else (
     set "WORKING_DIR=%~dp1"
     set "ServerConfigFile=%~f1"
@@ -118,40 +119,40 @@ echo. & echo. & echo.
 ::  Check for config file (use existing or generate new)
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 if exist "%ServerConfigFile%" (
-    call :stupid_echo "Конфигурационный файл найден   %ESC%[46G : '%ServerConfigFile%'"     &REM Configuration file found
+    call :stupid_echo "Configuration file found   %ESC%[46G : '%ServerConfigFile%'"     &REM Configuration file found
     echo.
 ) else (
     echo.
     echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     echo.::::                                                                            ::::
-    echo.::::    StartDSTwithParams %SCRIPT_VER%                               %ESC%[80G ::::
+    echo.::::    DSTcmdLauncher  %SCRIPT_VER%                                  %ESC%[80G ::::
     echo.::::    Copyright ^(c^) trng                                          %ESC%[80G ::::
     echo.::::                                                                            ::::
     echo.::::                                                                            ::::
-    echo.::::    Скрипт запуска выделенного сервера Don't Starve together.     %ESC%[80G ::::
-    echo.::::    Для запуска обязательно наличие конфигурационного файла.      %ESC%[80G ::::
-    echo.::::    Два варианта запуска скрипта:                                 %ESC%[80G ::::
+    echo.::::    Script to start a dedicated server Don't Starve together.     %ESC%[80G ::::
+    echo.::::    Configuraton file must exist for server start.                %ESC%[80G ::::
+    echo.::::    Two ways to run the script:                                   %ESC%[80G ::::
     echo.::::                                                                            ::::
-    echo.::::        1. StartDSTwithParams.cmd                                 %ESC%[80G ::::
-    echo.::::          ^(используется дефолтное имя: StartDSTwithParams.conf^) %ESC%[80G ::::
+    echo.::::        1. DSTcmdLauncherXXX.cmd                                  %ESC%[80G ::::
+    echo.::::          ^(default name used         : DSTcmdLauncher.conf^)     %ESC%[80G ::::
     echo.::::                                                                            ::::
-    echo.::::        2. StartDSTwithParams.cmd config_file_name.conf           %ESC%[80G ::::
+    echo.::::        2. DSTcmdLauncherXXX.cmd  config_file_name.conf           %ESC%[80G ::::
     echo.::::                                                                            ::::
-    echo.::::    Если файла конфигурации с таким именем не существует,         %ESC%[80G ::::
-    echo.::::    генерируется конфиг с дефолтными параметрами.                 %ESC%[80G ::::
+    echo.::::    If no config file found with this name,                       %ESC%[80G ::::
+    echo.::::    config with default params will be generated.                 %ESC%[80G ::::
     echo.::::                                                                            ::::
     echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     echo.
     pause
     echo. & echo. & echo. & echo.
-    call :stupid_echo "%ESC%[41m Конфигурационный файл ( %ServerConfigFile% ) не найден. %ESC%[0m"
+    call :stupid_echo "%ESC%[41m Configuration file ( %ServerConfigFile% ) not found. %ESC%[0m"
     echo. 
     setlocal EnableDelayedExpansion
-    set /P AREYOUSURE="Создать с параметрами по умолчанию? (Если "НЕТ", то просто выходим из скрипта) [Y]/N? "
+    set /P AREYOUSURE="Create with default params? (If "NO" - just exit from script) [Y]/N? "
     if /I "!AREYOUSURE!" EQU "N" (
-        echo. & echo.    Просто выходим из скрипта  &REM Just exiting
+        echo. & echo.    Just exiting ^(from script^)  &REM Just exiting
         goto :EOF
     ) else (
 :Get_Cluster_Name_again
@@ -160,7 +161,7 @@ if exist "%ServerConfigFile%" (
         echo.
         echo.%ESC%[0m
         if not defined cluster_name (
-            echo.    %ESC%[41mИмя кластера не может быть пустым. Попробуйте еще раз либо Ctrl-C для выхода...%ESC%[0m
+            echo.    %ESC%[41mCluster name cannot be empty. Try again or Ctrl-C for exit...%ESC%[0m
             goto :Get_Cluster_Name_again
             pause & goto :EOF
         )
@@ -169,14 +170,14 @@ if exist "%ServerConfigFile%" (
         set new_cluster_folder=!cluster_name!
 
         setlocal DisableDelayedExpansion 
-        call :stupid_echo "%ESC%[32m     Пробуем создать...%ESC%[0m%ESC%[46G : '%ServerConfigFile%'"
+        call :stupid_echo "%ESC%[32m     Trying to create...%ESC%[0m%ESC%[46G : '%ServerConfigFile%'"
         call :check_and_create_folder "%WORKING_DIR%"
         call :Generate_Config "%ServerConfigFile%"
         call :check_exist "%ServerConfigFile%"
 
         if defined check_exist_notfoud (
-            echo.Невозможно создать конфигурационный файл "%ServerConfigFile%".
-            echo.Выходим из скрипта.
+            echo.Cannot create config file "%ServerConfigFile%".
+            echo.Just exiting ^(from script^).
             pause & goto :EOF
         )
         set NewConfigCreated=True
@@ -194,7 +195,7 @@ cd /D "%WORKING_DIR%"
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::  Load parameters from ServerConfigFile into local variables
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-echo. & echo.Пробуем загрузить параметры...                &REM Trying to load
+echo. & echo.Trying to load parameters...                &REM Trying to load
 
 for /f "usebackq delims== tokens=1,2 eol=#" %%a in ("%ServerConfigFile%") do (
     setlocal DisableDelayedExpansion
@@ -223,9 +224,9 @@ for %%a in (%mandatory_params%) do (
 
 echo.
 if defined noargs (
-    echo.%ESC%[41m^Требуются дополнительные параметры: %noargs%%ESC%[0m &REM Additional args needed:
+    echo.%ESC%[41m^Additional parameters needed: %noargs%%ESC%[0m &REM Additional args needed:
     echo.
-    echo.%ESC%[41m^Скрипт будет остановлен.%ESC%[0m                       &REM Script will be stopped.
+    echo.%ESC%[41m^Script will be stopped.%ESC%[0m                       &REM Script will be stopped.
     echo.
     pause & goto :EOF
 )
@@ -235,7 +236,7 @@ setlocal DisableDelayedExpansion
 ::  Check for mandatory folders and files
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 echo.
-echo.Проверка наличия необходимых файлов...
+echo.Checking for required files...
 
 call :check_and_create_folder "%DST_steamcmd_dir%" confirm || goto :eof
 call :check_and_create_folder "%WORKING_DIR%\%DST_persistent_storage_root%\%DST_conf_dir%" || goto :eof
@@ -246,16 +247,16 @@ set temp_file_name=%DST_steamcmd_dir%\steamcmd.exe
 call :check_exist "%temp_file_name%"
 
 if defined check_exist_notfoud (
-    echo.    %ESC%[93m Пробуем скачать...%ESC%[0m%ESC%[46G : steamcmd.exe
+    echo.    %ESC%[93m Trying to load...%ESC%[0m%ESC%[46G : steamcmd.exe
     curl -L -s -o %DST_steamcmd_dir%\steamcmd.zip https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip>nul
     tar -xf %DST_steamcmd_dir%\steamcmd.zip -C %DST_steamcmd_dir%>nul
     del %DST_steamcmd_dir%\steamcmd.zip>nul
     if not exist "%temp_file_name%" (
         set file_not_found=TRUE
-        echo.    %ESC%[41m Не удалось скачать %ESC%[0m%ESC%[46G : steamcmd.exe
+        echo.    %ESC%[41m Failed to download %ESC%[0m%ESC%[46G : steamcmd.exe
     ) else (
         set file_not_found=
-        echo.    %ESC%[92m Удалось скачать    %ESC%[0m%ESC%[46G : steamcmd.exe
+        echo.    %ESC%[92m File downloaded    %ESC%[0m%ESC%[46G : steamcmd.exe
     )
 )
 
@@ -272,13 +273,13 @@ if not defined check_exist_notfoud (
         REM cluster exist AND new config generated.
         echo.
         echo.
-        echo.%ESC%[93mКластер с таким именем уже существует.%ESC%[0m
-		echo.%ESC%[93mБудет использован новый конфигурационный файл с существующим кластером.%ESC%[0m
+        echo.%ESC%[93mCluster with the same name already exist.%ESC%[0m
+		echo.%ESC%[93mNew config file with existing cluster will be used%ESC%[0m
         setlocal EnableDelayedExpansion
         set AREYOUSURE=
-        set /P AREYOUSURE="Продолжить? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
+        set /P AREYOUSURE="Continiue? (If "NO" - just exit from script)) Y/[N]? "
         if /I "!AREYOUSURE!" NEQ "Y" (
-            echo. & echo.    Просто выходим из скрипта  &REM Just exiting
+            echo. & echo.    Just exiting ^(from script^)  &REM Just exiting
             goto :EOF
         )
         setlocal DisableDelayedExpansion
@@ -286,21 +287,21 @@ if not defined check_exist_notfoud (
 ) else (
     echo.
     echo.
-    call :stupid_echo "%ESC%[93mКластер не найден         %ESC%[46G : '%DST_cluster_folder%'%ESC%[0m"
-    call :stupid_echo "%ESC%[32m(Создаем с параметрами по умолчанию)%ESC%[0m"
+    call :stupid_echo "%ESC%[93mCluster not found         %ESC%[46G : '%DST_cluster_folder%'%ESC%[0m"
+    call :stupid_echo "%ESC%[32m(Create with default parameters)%ESC%[0m"
     echo.
    
-    echo.     Проверяем наличие шаблонов для модов
+    echo.     Checking for mods templates availability
     call :check_exist "%~dp0%DST_my_mods_templates_folder%" rshift
     if defined check_exist_notfoud (
-        set selected_mods=%ESC%[0G::::%ESC%[32m  Template для модов%ESC%[0m%ESC%[46G : -
+        set selected_mods=%ESC%[0G::::%ESC%[32m  Template for mods%ESC%[0m%ESC%[46G : -
         echo.
-        echo.       %ESC%[41m Папка наборов модов "%DST_my_mods_templates_folder%" не найдена. Добавьте моды вручную позже. %ESC%[0m
+        echo.       %ESC%[41m Mods sets folder "%DST_my_mods_templates_folder%" not found. Add mods manually later. %ESC%[0m
         echo.
     ) else (
         cd /D "%~dp0%DST_my_mods_templates_folder%"
         echo.
-        echo.%ESC%[93m        Выберите набор модов:%ESC%[0m
+        echo.%ESC%[93m        Select mods set:%ESC%[0m
         set /a i=0
         setlocal EnableDelayedExpansion
         FOR /D %%G in ("*") DO (
@@ -314,8 +315,8 @@ if not defined check_exist_notfoud (
         CHOICE /T 31 /D 1 /C "!choice_trim_RESULT!"
         call :getvar var!ERRORLEVEL!
         echo.
-        call :stupid_echo "%ESC%[32m        Template для модов%ESC%[0m%ESC%[46G : %ESC%[93m!result!%ESC%[0m"
-        set selected_mods=%ESC%[0G::::%ESC%[32m  Template для модов%ESC%[0m%ESC%[46G : !result!
+        call :stupid_echo "%ESC%[32m        Template for mods%ESC%[0m%ESC%[46G : %ESC%[93m!result!%ESC%[0m"
+        set selected_mods=%ESC%[0G::::%ESC%[32m  Template for mods%ESC%[0m%ESC%[46G : !result!
 		REM copy lua mods files to working dir (every next run its will be copied to right places)
         cd !result!
         setlocal DisableDelayedExpansion
@@ -323,7 +324,7 @@ if not defined check_exist_notfoud (
     ) 
     mkdir "%CLUSTER_FOLDER_FULL_PATH%"
     echo.
-    call :stupid_echo "%ESC%[32m     Генерируем конфигурацию кластера...%ESC%[0m%ESC%[46G : '%CLUSTER_FOLDER_FULL_PATH%'"
+    call :stupid_echo "%ESC%[32m     Generating the cluster configuration...%ESC%[0m%ESC%[46G : '%CLUSTER_FOLDER_FULL_PATH%'"
     xcopy "%~dp0%DST_cluster_templates_folder%\*.*" "%CLUSTER_FOLDER_FULL_PATH%\" /E>nul
     cd /D "%CLUSTER_FOLDER_FULL_PATH%"
 	if not defined NewConfigCreated ( 
@@ -333,43 +334,42 @@ if not defined check_exist_notfoud (
 		REM Since this situation is quite rare and Cluster name can be changed later in cluster.ini,
 		REM we will use DST_cluster_folder without asking user
         call :save_cluster_name_to_ini "cluster_name = %DST_cluster_folder%"
-        set stupid_cluster_name="%ESC%[0G::::  %ESC%[32mИмя кластера (видно в списке серверов) %ESC%[0m%ESC%[46G : %DST_cluster_folder%"%ESC%[1D 
+        set stupid_cluster_name="%ESC%[0G::::  %ESC%[32mCluster name (showed in servers list) %ESC%[0m%ESC%[46G : %DST_cluster_folder%"%ESC%[1D 
 	) else (
         call :save_cluster_name_to_ini "cluster_name = %cluster_name%"
-        set stupid_cluster_name="%ESC%[0G::::  %ESC%[32mИмя кластера (видно в списке серверов) %ESC%[0m%ESC%[46G : %cluster_name%"%ESC%[1D 
+        set stupid_cluster_name="%ESC%[0G::::  %ESC%[32mCluster name (showed in servers list) %ESC%[0m%ESC%[46G : %cluster_name%"%ESC%[1D 
     )
     rem setlocal EnableDelayedExpansion 
     echo. & echo. & echo.   
+    echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     echo.::::
-    echo.::::
-    echo.::::
-    echo.::::  %ESC%[92mКонфигурация создана успешно^!^!^!%ESC%[0m
+    echo.::::  %ESC%[92mConfiguration successfully created^!^!^!%ESC%[0m
     echo.::::
     set stupid_cluster_name
     set selected_mods
-    echo.::::  %ESC%[32mПапка с настройками сервера %ESC%[0m%ESC%[46G : "%CLUSTER_FOLDER_FULL_PATH%"
-    echo.::::  %ESC%[32mКонфигурация скрипта %ESC%[0m%ESC%[46G : "%ServerConfigFile%"
-    echo.::::  %ESC%[32mФайлы настройки модов находятся в%ESC%[0m%ESC%[46G : "%WORKING_DIR%\"
+    echo.::::  %ESC%[32mFolder with server config %ESC%[0m%ESC%[46G : "%CLUSTER_FOLDER_FULL_PATH%"
+    echo.::::  %ESC%[32mScript config file %ESC%[0m%ESC%[46G : "%ServerConfigFile%"
+    echo.::::  %ESC%[32mMods configuration files are located in%ESC%[0m%ESC%[46G : "%WORKING_DIR%\"
     echo.::::   
     echo.::::   
-    echo.::::  При добавлении модов не забывайте менять оба файла:
+    echo.::::  When adding mods, do not forget to change both files:
     echo.::::        - dedicated_server_mods_setup.lua
     echo.::::        - modoverrides.lua
     echo.::::   
-    echo.::::   
-    echo.::::  %ESC%[93mВНИМАНИЕ ^!^!^!%ESC%[0m
-    echo.::::  %ESC%[93mСервер не будет запущен без вашего токена^!%ESC%[0m
-    echo.::::  Впишите токен в cluster_token.txt
-    echo.::::  Копипаст либо скачайте с
-    echo.::::  https://accounts.klei.com/login?goto=https://accounts.klei.com/account/game/servers?game=DontStarveTogether
-    echo.::::
-    echo.::::
-    echo.::::   
-    echo. & echo.
-    echo.%ESC%[93mСейчас скрипт будет остановлен.%ESC%[0m
+    echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    echo. & echo. & echo.
+    echo.%ESC%[93mATTENTION ^!^!^!%ESC%[0m
+    echo.%ESC%[93mServer will not start without your token^!%ESC%[0m
+    echo.Write down the token in cluster_token.txt
+    echo.Copy-paste or download from
+    echo.https://accounts.klei.com/login?goto=https://accounts.klei.com/account/game/servers?game=DontStarveTogether
+    echo. & echo. & echo. & echo. & echo.
+    echo.%ESC%[93mScript will be stopped now.%ESC%[0m
     setlocal EnableDelayedExpansion
     set AREYOUSURE=
-    set /P AREYOUSURE="Открыть cluster_token.txt в Блокноте? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
+    set /P AREYOUSURE="Open cluster_token.txt in notepad? (If "NO" - just exit from script) Y/[N]? "
     if /I "!AREYOUSURE!"=="Y" (
         setlocal DisableDelayedExpansion
         start notepad.exe "%CLUSTER_FOLDER_FULL_PATH%\cluster_token.txt"
@@ -386,8 +386,8 @@ for %%a in (%DST_shards%) do (
 
 if defined file_not_found (
     echo.
-    echo.Не найдены папки для шардов.
-    echo.Скрипт будет остановлен.  
+    echo.Shards folders not found.
+    echo.Script will be stopped.  
     pause & goto :EOF
 )
 
@@ -405,8 +405,8 @@ for /F "usebackq tokens=2,9 delims=," %%p in (`%cmd%`) do (
     if not defined first_time_loop (
         set first_time_loop=false
         echo.     &REM WARNING Running shards found  
-        echo.%ESC%[41m ----------------------            ВНИМАНИЕ ^^!^^!^^!           ---------------------- %ESC%[0m
-        echo.%ESC%[41m ----------------------      Найдены запущенные шарды     ---------------------- %ESC%[0m
+        echo.%ESC%[41m ----------------------            ATTENTION ^^!^^!^^!           ---------------------- %ESC%[0m
+        echo.%ESC%[41m ----------------------      Running shards found     ---------------------- %ESC%[0m
         echo.
     )
     set pid_with_quotes=%%p
@@ -418,16 +418,16 @@ for /F "usebackq tokens=2,9 delims=," %%p in (`%cmd%`) do (
 
 if defined pids_list (
     set AREYOUSURE=
-    set /P AREYOUSURE="Шарды уже запущены! Остановить их? (Если "НЕТ", то просто выходим из скрипта) Y/[N]? "
+    set /P AREYOUSURE="Kill running shards? (If "NO" - just exit from script) Y/[N]? "
     setlocal EnableDelayedExpansion
     if /I "!AREYOUSURE!" NEQ "Y" (
-        echo. & echo.Просто выходим из скрипта
+        echo. & echo.Just exiting ^(from script^)
         goto :EOF
     ) else (
         setlocal DisableDelayedExpansion
-        echo.Пытаемся остановить запущенные шарды...
+        echo.Trying to kill runnig shards...
         for %%a in (%pids_list%) do taskkill /PID %%a
-        echo. & echo Небольшая пауза для остановки шардов...
+        echo. & echo A little pause to stop the shards...
         timeout 3
         goto :check_runnig_shards_again
     )
@@ -475,7 +475,7 @@ tar -czf "..\..\worldbackup\%DST_cluster_folder%_%DATE%_%HH%-%MM%-%SS%.tar.gz" "
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 start "Start steamcmd for load/update/validate DST dedicated server application." cmd /C "%0" /goto NewConsole
-echo. & echo Нажмите любую клавишу если вы хоитите оставить это консольное окно открытым
+echo. & echo Press any key if you want to leave this console window open
 call :timeout_with_keypress_detect 10
 if defined key_pressed cmd /K
 exit
@@ -561,14 +561,11 @@ REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 REM
-REM
 REM                  END OF MAIN SCRIPT. ONLY FUNCTIONS BELOW
 REM
-REM
 REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
 
 
 :setkey
@@ -599,6 +596,7 @@ REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     :: %~1 used! String must be double quoted!
     echo %~1
     exit /b
+
 
 :stupid_excl_m
     set tmpstr=%~2
@@ -650,13 +648,13 @@ REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     exit /b
 
 
-
 :StupidCmdBreaksEscSequences
 REM A hack against various console commands that break escape sequences for no apparent reason.
 REM Its very similar like this commands call Win32 function SetConsoleMode 
 REM and reset terminal with ENABLE_VIRTUAL_TERMINAL_INPUT ENABLE_VIRTUAL_TERMINAL_PROCESSING flags
 REM But after call to any label with "exit /b" termial begin execute escape sequences again.
     exit /b
+
 
 :Trim
 REM ltrim and rtrim whitespaces. %1 - variable NAME (input and output)
@@ -669,20 +667,18 @@ REM ltrim and rtrim whitespaces. %1 - variable NAME (input and output)
     exit /b
 
 
-
 :check_exist
 REM check file/dir exist
 REM Mandatory param - folder or file name
     set check_exist_notfoud=
     if "%~2"=="rshift" (set spaces=      ) else (set spaces=   )
     if not exist "%~1" (
-        echo.%spaces% %ESC%[41m Каталог/файл не найден %ESC%[0m%ESC%[46G : "%~1"
+        echo.%spaces% %ESC%[41m Folder/file not found %ESC%[0m%ESC%[46G : "%~1"
         set check_exist_notfoud=TRUE
     ) else (
-        echo.%spaces% %ESC%[92m Каталог/файл найден    %ESC%[0m%ESC%[46G : "%~1"
+        echo.%spaces% %ESC%[92m Folder/file found    %ESC%[0m%ESC%[46G : "%~1"
     )
     exit /b
-
 
 
 :check_and_create_folder
@@ -693,21 +689,21 @@ REM     Optional param : %2 - if %2==confirm then confirmation will be asked.
     call :check_exist "%~1"
     if defined check_exist_notfoud (
         if "%~2"=="confirm" (
-            echo.%ESC%[93m         Создать "%~1"?%ESC%[0m
+            echo.%ESC%[93m         Create "%~1"?%ESC%[0m
             setlocal EnableDelayedExpansion
             set AREYOUSURE=
-            set /P AREYOUSURE="%ESC%[93m     (Если "НЕТ", то просто выходим из скрипта) Y/[N]?%ESC%[0m"
+            set /P AREYOUSURE="%ESC%[93m     (If "NO" - just exit from script) Y/[N]?%ESC%[0m"
             if /I "!AREYOUSURE!" NEQ "Y" (
-                echo. & echo.    Просто выходим из скрипта  &REM Just exiting
+                echo. & echo.    Just exiting ^(from script^)  &REM Just exiting
                 exit /b 1
             )
             setlocal DisableDelayedExpansion
         )
-        echo.        %ESC%[32mПробуем создать... %ESC%[0m%ESC%[46G : "%~1"
+        echo.        %ESC%[32mTrying to create... %ESC%[0m%ESC%[46G : "%~1"
         mkdir "%~1"
         call :check_exist "%~1" rshift
         if defined check_exist_notfoud (
-            echo.        Невозможно создать папку "%~1". Продолжение невозможно.
+            echo.        Cannot create folder "%~1". Cannot continue
             pause
             exit /b 1
         )
@@ -719,7 +715,6 @@ REM     Optional param : %2 - if %2==confirm then confirmation will be asked.
 :timeout_with_keypress_detect
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Timeout with key press detect.
-::
 :: Mandatory parameter : seconds for timeout.
 :: Return value        : key_pressed variable defined if key pressed
 ::                      (value - seconds when key was pressed).
@@ -742,140 +737,61 @@ REM Mandatory param %1 - config file name
 REM
 :: trouble with ")" - it cannot be echoed without escaping
 set "new_cluster_folder_escaped=%new_cluster_folder:)=^)%"
+set CRLF=^& echo.
 (echo ^
-#^
-
-# Конфигурационный файл для запуска скрипта StartDSTwithParams.cmd^
-
-#^
-
-^
-
-^
-
-#^
-
-# FIRST RUN^
-
-#^
-
-#     DST_cluster_templates_folder: default set of files for new cluster ^(as from Klei website^)^
-
-#     DST_my_mods_templates_folder: Dir for mod's sets templates ^(up to 9 templates^)^
-
-#           For now "mod template" is 2 files: dedicated_server_mods_setup.lua, modoverrides.lua.^
-
-#           During normal run ^(not first time^) this 2 files copies to right places every run.^
-
-#     Both folders are located inside script folder.^
-
-DST_cluster_templates_folder    = MyDediServerTemplate^
-
-DST_my_mods_templates_folder    = MyModsTemplates^
-
-^
-
-^
-
-#^
-
-# STEAM^
-
-#^
-
-DST_steamcmd_dir    		    = %USERPROFILE%\steamcmd^
-
-DST_dst_bin                  	= steamapps\common\Don't Starve Together Dedicated Server\bin64^
-
-DST_exe                         = dontstarve_dedicated_server_nullrenderer_x64.exe^
-
-^
-
-^
-
-#^
-
-# SERVER^
-
-#^
-
-#     Parameters for dontstarve_dedicated_server_nullrenderer executable.^
-
-#     3 nested dirs.^
-
-#     DST_persistent_storage_root relative to current dir ^(defined in WORKING_DIR varable^):^
-
-#     WORKING_DIR/DST_persistent_storage_root/DST_conf_dir/DST_cluster_folder^
-
-DST_persistent_storage_root  	= KleiDedicated^
-
-DST_conf_dir                 	= DoNotStarveTogether^
-
-DST_cluster_folder             	= %new_cluster_folder_escaped%^
-
-^
-
-^
-
-#^
-
-# SHARDS^
-
-#^
-
-#     Space separated dirnames. Dirname cannot include spaces^
-
-#     Example: Master Caves^
-
-#     First shard is master always. TODO: parse cluster.ini server.ini to find master^
-
-DST_shards                      = Master Caves^
-
-^
-
-^
-
-#^
-
-# CONSOLE^
-
-#^
-
-#     Screen coordinates X Y for each shard's console window ^(optional^).^
-
-#     Key    - shard's name ^(as listed at DST_shards^).^
-
-#     Value  - X Y ^(space separated, may be negative for second screen at left^)^
-
-Master                          = X Y^
-
-Caves                           = X Y^
-
-^
-
-^
-
-#^
-
-# LUA^
-
-#^
-
-#     Lua interpreter can be used for generating dedicated_server_mods_setup.lua.^
-
-#     If interpreter not found - you should edit both files respectively:^
-
-#     dedicated_server_mods_setup.lua, modoverrides.lua^
-
-#     If LUA_use_lua = false, lua will not used even if present in the system.^
-
-#     First of all script check for lua executable at LUA_exe_full_path ^(if defined^).^
-
-#     Next - script serarch lua*.exe via PATH variable. Last one found will be used.^
-
-LUA_use_lua                     = true^
-
-LUA_exe_full_path               =^
-
-)>%1
+#%CRLF%^
+# Configuration file to run the script      DSTcmdLauncherXXX.cmd%CRLF%^
+#%CRLF%%CRLF%%CRLF%^
+#%CRLF%^
+# FIRST RUN%CRLF%^
+#%CRLF%^
+#     DST_cluster_templates_folder: default set of files for new cluster ^(as from Klei website^)%CRLF%^
+#     DST_my_mods_templates_folder: Dir for mod's sets templates ^(up to 9 templates^)%CRLF%^
+#           For now "mod template" is 2 files: dedicated_server_mods_setup.lua, modoverrides.lua.%CRLF%^
+#           During normal run ^(not first time^) this 2 files copies to right places every run.%CRLF%^
+#     Both folders are located inside script folder.%CRLF%^
+DST_cluster_templates_folder    = MyDediServerTemplate%CRLF%^
+DST_my_mods_templates_folder    = MyModsTemplates%CRLF%%CRLF%%CRLF%^
+#%CRLF%^
+# STEAM%CRLF%^
+#%CRLF%^
+DST_steamcmd_dir    		    = %USERPROFILE%\steamcmd%CRLF%^
+DST_dst_bin                  	= steamapps\common\Don't Starve Together Dedicated Server\bin64%CRLF%^
+DST_exe                         = dontstarve_dedicated_server_nullrenderer_x64.exe%CRLF%%CRLF%%CRLF%^
+#%CRLF%^
+# DEDICATED SERVER%CRLF%^
+#%CRLF%^
+#     Parameters for dontstarve_dedicated_server_nullrenderer executable.%CRLF%^
+#     3 nested dirs.%CRLF%^
+#     DST_persistent_storage_root relative to current dir ^(defined in WORKING_DIR varable^):%CRLF%^
+#     WORKING_DIR/DST_persistent_storage_root/DST_conf_dir/DST_cluster_folder%CRLF%^
+DST_persistent_storage_root  	= KleiDedicated%CRLF%^
+DST_conf_dir                 	= DoNotStarveTogether%CRLF%^
+DST_cluster_folder             	= %new_cluster_folder_escaped%%CRLF%%CRLF%%CRLF%^
+#%CRLF%^
+# SHARDS%CRLF%^
+#%CRLF%^
+#     Space separated dirnames. Dirname cannot include spaces%CRLF%^
+#     Example: Master Caves%CRLF%^
+#     First shard is master always. TODO: parse cluster.ini server.ini to find master%CRLF%^
+DST_shards                      = Master Caves%CRLF%%CRLF%%CRLF%^
+#%CRLF%^
+# CONSOLE%CRLF%^
+#%CRLF%^
+#     Screen coordinates X Y for each shard's console window ^(optional^).%CRLF%^
+#     Key    - shard's name ^(as listed at DST_shards^).%CRLF%^
+#     Value  - X Y ^(space separated, may be negative for second screen at left^)%CRLF%^
+Master                          = X Y%CRLF%^
+Caves                           = X Y%CRLF%%CRLF%%CRLF%^
+#%CRLF%^
+# LUA%CRLF%^
+#%CRLF%^
+#     Lua interpreter can be used for generating dedicated_server_mods_setup.lua.%CRLF%^
+#     If interpreter not found - you should edit both files respectively:%CRLF%^
+#     dedicated_server_mods_setup.lua, modoverrides.lua%CRLF%^
+#     If LUA_use_lua = false, lua will not used even if present in the system.%CRLF%^
+#     First of all script check for lua executable at LUA_exe_full_path ^(if defined^).%CRLF%^
+#     Next - script serarch lua*.exe via PATH variable. Last one found will be used.%CRLF%^
+LUA_use_lua                     = true%CRLF%^
+LUA_exe_full_path               =%CRLF%)>%1
 exit /b
