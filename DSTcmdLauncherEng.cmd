@@ -5,7 +5,7 @@ chcp 65001 > nul                    &REM Non-latin strings encoding
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.20
+set SCRIPT_VER=v1.2.21
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -86,7 +86,6 @@ if "%~s1"=="" (
     set "WORKING_DIR=%~dp1"
     set "ServerConfigFile=%~f1"
 )
-
 echo. & echo. & echo.
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -161,7 +160,7 @@ if not defined NewConfigCreated set cluster_name=Stupid trouble with undefined v
 
 
 REM 
-REM If config specified with full path in command line, we should change working dir.
+REM Config can be specified with full path in command line, we should change working dir.
 REM 
 cd /D "%WORKING_DIR%"
 
