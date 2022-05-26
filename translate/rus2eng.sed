@@ -7,6 +7,10 @@ s/Остановить скрипт и перейти на github/Stop script an
 s/Не проверять наличие новых версий в будущем для этого кластера ^(не рекомендуется^)/Do not check new versions in the future for this cluster ^(not recommended^)/g
 s/Для пропуска проверки новых версий %ESC%\[93mатрибут read-only%ESC%\[0m будет назначен этому скрипту/To skip check new versions %ESC%\[93mread-only attribute%ESC%\[0m will be applied to this script/g
 s/Вы можете возобновить проверку новых версий убрав атрибут read-only/You can re-enable check for new version by removing read-only attribute/g
+s/Короткие имена ^(8.3^) отключены на рабочем томе/Short names ^(8.3^) is disabled on working volume/g
+s/Если вы используете нелатинские символы, пробелы и некоторые специальные символы/If you use non-Latin symbols, spaces, and some special symblos/g
+s/в именах файлов и папок - могут быть проблемы/in files and folders names - there may be problems/g
+s/Скрипт использует короткие имена для решения этой проблемы/Script uses shortnames to resolve this trouble/g
 s/Конфигурационный файл найден/Configuration file found/g
 s/Скрипт запуска выделенного сервера/Script to start a dedicated server/g
 s/Для запуска обязательно наличие конфигурационного файла./Configuraton file must exist for server start.          /g

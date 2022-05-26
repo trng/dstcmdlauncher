@@ -5,7 +5,7 @@ chcp 65001 > nul                    &REM Non-latin strings encoding
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.18
+set SCRIPT_VER=v1.2.19
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -104,11 +104,11 @@ REM ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 for /f "delims=" %%A in ('fsutil behavior query disable8dot3 %WORKING_DRIVE% ^| find /C ": 1"') do (
     if "%%A"=="1" (
-        echo %ESC%[93mWARNING^!%ESC%[0m
-        echo %ESC%[93m    Short names ^(8.3^) is disabled on working volume.%ESC%[0m
-        echo %ESC%[93m    If you use non-Latin symbols, spaces, and some special symblos in files/folders names,%ESC%[0m
-        echo %ESC%[93m    there may be problems.
-        echo    ^(Script uses shortnames to resolve this trouble^).%ESC%[0m
+        echo %ESC%[93mВНИМАНИЕ^!%ESC%[0m
+        echo %ESC%[93m    Короткие имена ^(8.3^) отключены на рабочем томе.%ESC%[0m
+        echo %ESC%[93m    Если вы используете нелатинские символы, пробелы и некоторые специальные символы%ESC%[0m
+        echo %ESC%[93m    в именах файлов и папок - могут быть проблемы.
+        echo    ^(Скрипт использует короткие имена для решения этой проблемы^).%ESC%[0m
         pause
     )
 )
