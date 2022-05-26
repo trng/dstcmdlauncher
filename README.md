@@ -17,9 +17,9 @@
 * *Optional:* Lua interpreter can be used for auto-generate dedicated_server_mods_setup.lua (based on modoverrides.lua).
 
 ## Install
-Clone.
+Download and unzip (don't forget to unzip before run).
 
-Or download and unzip (don't forget to unzip before run).
+Or clone.
 
 https://github.com/trng/dstcmdlauncher/archive/refs/heads/main.zip
 
