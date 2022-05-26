@@ -1,4 +1,4 @@
-**Current version v1.2.16**
+**Current version v1.2.18**
 
 # Don't Starve Together dedicated server launcher (cmd batch script)
 
