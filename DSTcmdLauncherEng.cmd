@@ -5,7 +5,7 @@ chcp 65001 > nul                    &REM Non-latin strings encoding
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.17
+set SCRIPT_VER=v1.2.18
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -119,7 +119,7 @@ echo. & echo. & echo.
 ::  Check for config file (use existing or generate new)
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 if exist "%ServerConfigFile%" (
-    call :stupid_echo "Configuration file found   %ESC%[46G : '%ServerConfigFile%'"     &REM Configuration file found
+    call :stupid_echo "Configuration file found   %ESC%[46G : '%ServerConfigFile%'"
     echo.
 ) else (
     echo.
@@ -152,7 +152,7 @@ if exist "%ServerConfigFile%" (
     setlocal EnableDelayedExpansion
     set /P AREYOUSURE="Create with default params? (If "NO" - just exit from script) [Y]/N? "
     if /I "!AREYOUSURE!" EQU "N" (
-        echo. & echo.    Just exiting ^(from script^)  &REM Just exiting
+        echo. & echo.    Just exiting ^(from script^)
         goto :EOF
     ) else (
 :Get_Cluster_Name_again
@@ -195,7 +195,7 @@ cd /D "%WORKING_DIR%"
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::  Load parameters from ServerConfigFile into local variables
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-echo. & echo.Trying to load parameters...                &REM Trying to load
+echo. & echo.Trying to load parameters...
 
 for /f "usebackq delims== tokens=1,2 eol=#" %%a in ("%ServerConfigFile%") do (
     setlocal DisableDelayedExpansion
@@ -215,7 +215,7 @@ for %%a in (%mandatory_params%) do (
     REM "!%%a: =!" trim all spaces (check var for empty value)
     if "!%%a: =!"=="" set or_=true
     if defined or_  (
-        echo.%ESC%[41m     undefined: %%a%ESC%[0m   &REM  ^<ESC^>[35m [35mMagenta[0m
+        echo.%ESC%[41m     undefined: %%a%ESC%[0m
         set noargs=!noargs!  "%%a"
     ) else (
         echo.     %ESC%[92m^defined%ESC%[0m  : %ESC%[32m%%a%ESC%[0m %ESC%[46G = !%%a!
@@ -224,9 +224,9 @@ for %%a in (%mandatory_params%) do (
 
 echo.
 if defined noargs (
-    echo.%ESC%[41m^Additional parameters needed: %noargs%%ESC%[0m &REM Additional args needed:
+    echo.%ESC%[41m^Additional parameters needed: %noargs%%ESC%[0m 
     echo.
-    echo.%ESC%[41m^Script will be stopped.%ESC%[0m                       &REM Script will be stopped.
+    echo.%ESC%[41m^Script will be stopped.%ESC%[0m
     echo.
     pause & goto :EOF
 )
@@ -279,7 +279,7 @@ if not defined check_exist_notfoud (
         set AREYOUSURE=
         set /P AREYOUSURE="Continiue? (If "NO" - just exit from script)) Y/[N]? "
         if /I "!AREYOUSURE!" NEQ "Y" (
-            echo. & echo.    Just exiting ^(from script^)  &REM Just exiting
+            echo. & echo.    Just exiting ^(from script^)
             goto :EOF
         )
         setlocal DisableDelayedExpansion
@@ -404,7 +404,7 @@ for /F "usebackq tokens=2,9 delims=," %%p in (`%cmd%`) do (
     setlocal EnableDelayedExpansion
     if not defined first_time_loop (
         set first_time_loop=false
-        echo.     &REM WARNING Running shards found  
+        echo.
         echo.%ESC%[41m ----------------------            ATTENTION ^^!^^!^^!           ---------------------- %ESC%[0m
         echo.%ESC%[41m ----------------------      Running shards found     ---------------------- %ESC%[0m
         echo.
@@ -694,7 +694,7 @@ REM     Optional param : %2 - if %2==confirm then confirmation will be asked.
             set AREYOUSURE=
             set /P AREYOUSURE="%ESC%[93m     (If "NO" - just exit from script) Y/[N]?%ESC%[0m"
             if /I "!AREYOUSURE!" NEQ "Y" (
-                echo. & echo.    Just exiting ^(from script^)  &REM Just exiting
+                echo. & echo.    Just exiting ^(from script^)
                 exit /b 1
             )
             setlocal DisableDelayedExpansion
