@@ -5,7 +5,7 @@ chcp 65001 > nul                    &REM Non-latin strings encoding
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.19
+set SCRIPT_VER=v1.2.20
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -27,10 +27,10 @@ REM :: If 8.3 disabled on all volumes on the system - show warning
 REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 for /f "delims=" %%A in ('fsutil behavior query disable8dot3 ^| find /C ": 1"') do (
     if "%%A"=="1" (
-        echo %ESC%[93mWARNING^!%ESC%[0m
-        echo %ESC%[93m    Short names ^(8.3^) is disabled on all volumes on the system.%ESC%[0m
-        echo %ESC%[93m    If you use non-Latin symbols, spaces, and some special symblos in files/folders names,%ESC%[0m
-        echo %ESC%[93m    there may be problems.
+        echo %ESC%[93mATTENTION^!%ESC%[0m
+        echo %ESC%[93m    Short names ^(8.3^) is disabled on all disks.%ESC%[0m
+        echo %ESC%[93m    If you use non-Latin symbols, spaces, and some special symblos%ESC%[0m
+        echo %ESC%[93m    in files and folders names - there may be problems.
         echo    ^(Script uses shortnames to resolve this trouble^).%ESC%[0m
         pause
     )
@@ -42,7 +42,7 @@ set attributes=%~af0
 setlocal EnableDelayedExpansion
 if "!attributes:~1,1!"=="-" (
     del %TEMP%\sdstwp 2> nul & del %TEMP%\sdstwp2 2> nul
-    curl -L -s -o "%TEMP%\sdstwp" "https://raw.githubusercontent.com/trng/dstcmdlauncher/main/StartDSTwithParamsRus.cmd" > nul
+    curl -L -s -o "%TEMP%\sdstwp" "https://raw.githubusercontent.com/trng/dstcmdlauncher/main/DSTcmdLauncherRus.cmd" > nul
     if exist "%TEMP%\sdstwp" findstr /b /l /c:"set SCRIPT_VER=" "%TEMP%\sdstwp" > "%TEMP%\sdstwp2" & set /P script_ver_online=<"%TEMP%\sdstwp2"
     if defined script_ver_online (
         call :Trim script_ver_online
@@ -85,32 +85,6 @@ if "%~s1"=="" (
 ) else (
     set "WORKING_DIR=%~dp1"
     set "ServerConfigFile=%~f1"
-)
-
-call :set_working_drive "%WORKING_DIR%"
-goto :end_of_working_drive
-
-:set_working_drive
-    set WORKING_DRIVE=%~d1
-    exit /b
-
-:end_of_working_drive
-
-
-REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-REM :: Check the status of 8.3 on drive with config
-REM :: If 8.3 disabled on all volumes on the system - show warning
-REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-for /f "delims=" %%A in ('fsutil behavior query disable8dot3 %WORKING_DRIVE% ^| find /C ": 1"') do (
-    if "%%A"=="1" (
-        echo %ESC%[93mATTENTION^!%ESC%[0m
-        echo %ESC%[93m    Short names ^(8.3^) is disabled on working volume.%ESC%[0m
-        echo %ESC%[93m    If you use non-Latin symbols, spaces, and some special symblos%ESC%[0m
-        echo %ESC%[93m    in files and folders names - there may be problems.
-        echo    ^(Script uses shortnames to resolve this trouble^).%ESC%[0m
-        pause
-    )
 )
 
 echo. & echo. & echo.
