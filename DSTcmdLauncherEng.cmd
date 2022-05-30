@@ -1,40 +1,43 @@
 @echo off
-if "%~1" == "/goto" goto :%~2       &REM See :NewConsole label below for details
+REM Script work in new console window
+if defined DSTcmdLauncherGotoNewConsoleWindow goto :NewConsole
+set DSTcmdLauncherGotoNewConsoleWindow=true
+set DSTallcmdparams="%*"
+start cmd /C "%0 %*"
+exit
+
+:NewConsole
 chcp 65001 > nul                    &REM Non-latin strings encoding
 
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Do not change structure of this line!
 :: It's accessed with grep/find and splitted as "skip first 15 symbols and rest of the string will be version number".
-set SCRIPT_VER=v1.2.21
+set SCRIPT_VER=v1.2.22
 ::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+title Don't Starve Together dedicated server launcher (cmd batch script). %SCRIPT_VER%
+echo Don't Starve Together dedicated server launcher (cmd batch script).
+echo %SCRIPT_VER% & echo. & echo.
+
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: WORKING_DIR - variable with folder by default for config file and cluster folder (changeable via .conf)
 :: It MUST be set without EnableDelayedExpansion (with EnableDelayedExpansion sign "!" in the path will be big problem)
 :: It can be changed later if the config file is specified with a full path
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 set WORKING_DIR=%cd%
-
+if "%~s1"=="" (
+    set "ServerConfigFile=%WORKING_DIR%\DSTcmdLauncher.conf"
+) else (
+    set "WORKING_DIR=%~dp1"
+    set "ServerConfigFile=%~f1"
+)
 
 :: Hack for define placeholders:  chr(09) to %TAB% (for ltrim | rtrim in :Trim)
 ::                                chr(27) to %ESC% (for echo coloring)
 echo.091B33>%TEMP%\sdstwp & certUtil -decodeHex -f "%TEMP%\sdstwp" "%TEMP%\sdstwp" > nul & set /P SPECHAR=<"%TEMP%\sdstwp"
 set TAB=%SPECHAR:~0,1%
 set ESC=%SPECHAR:~1,1%
-
-REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-REM :: Check the status of 8.3 on the system
-REM :: If 8.3 disabled on all volumes on the system - show warning
-REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-for /f "delims=" %%A in ('fsutil behavior query disable8dot3 ^| find /C ": 1"') do (
-    if "%%A"=="1" (
-        echo %ESC%[93mATTENTION^!%ESC%[0m
-        echo %ESC%[93m    Short names ^(8.3^) is disabled on all disks.%ESC%[0m
-        echo %ESC%[93m    If you use non-Latin symbols, spaces, and some special symblos%ESC%[0m
-        echo %ESC%[93m    in files and folders names - there may be problems.
-        echo    ^(Script uses shortnames to resolve this trouble^).%ESC%[0m
-        pause
-    )
-)
 
 REM Check new version on github. If this script file has read-only attribute, the new version check will be skipped.
 call :Trim SCRIPT_VER
@@ -78,24 +81,59 @@ if "!attributes:~1,1!"=="-" (
         )
     )
 )
-
 setlocal DisableDelayedExpansion 
-if "%~s1"=="" (
-    set "ServerConfigFile=%WORKING_DIR%\DSTcmdLauncher.conf"
-) else (
-    set "WORKING_DIR=%~dp1"
-    set "ServerConfigFile=%~f1"
-)
-echo. & echo. & echo.
 
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-::  Check for config file (use existing or generate new)
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+REM :: Check the status of 8.3 on the system
+REM :: If 8.3 disabled on all volumes on the system - show warning
+REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+for /f "delims=" %%A in ('fsutil behavior query disable8dot3 ^| find /C ": 1"') do (
+    if "%%A"=="1" (
+        echo.
+        echo %ESC%[93mATTENTION^!%ESC%[0m
+        echo %ESC%[93m    Short names ^(8.3^) is disabled on all disks.%ESC%[0m
+        echo %ESC%[93m    If you use non-Latin symbols, spaces, and some special symblos%ESC%[0m
+        echo %ESC%[93m    in files and folders names - there may be problems.
+        echo    ^(Script uses shortnames to resolve this trouble^).%ESC%[0m
+        echo.
+        pause
+    )
+)
+
+REM ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+REM ::  Check for Windows Build No
+REM :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: 
+for /f "delims=" %%A in ('systeminfo ^| findstr /B /C:"OS Version"') do (set sysinfostr=%%A)
+for %%A in (%sysinfostr%) do (set winbuildno=%%A)
+set /A winbuildno_int=%winbuildno%
+if %winbuildno_int% LSS 17063 (
+    echo.
+    echo.%ESC%[91m  ATTENTION ^^!^^!^^!%ESC%[0m
+    echo.%ESC%[91m  Windows build number is %winbuildno_int%. It is less than required ^(17063^).%ESC%[0m
+    echo.%ESC%[91m  Script needs 2 commands from this build: "curl.exe" and "tar.exe".%ESC%[0m
+    echo.
+    echo If you are absolutely sure what you are doing - you can continue.
+    setlocal EnableDelayedExpansion
+    set AREYOUSURE=
+    set /P AREYOUSURE=" Continiue? (If "NO", just exit from script) Y/[N]? "
+    if /I "!AREYOUSURE!" NEQ "Y" (
+        echo. & echo.    Just exiting from script
+        goto :EOF
+    )
+    setlocal DisableDelayedExpansion
+)
+
+
+REM ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+REM ::  Check for config file (use existing or generate new)
+REM ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 if exist "%ServerConfigFile%" (
+    echo.
     call :stupid_echo "Configuration file found   %ESC%[46G : '%ServerConfigFile%'"
     echo.
 ) else (
-    echo.
+    echo. & echo.
     echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     echo.::::                                                                            ::::
@@ -156,29 +194,32 @@ if exist "%ServerConfigFile%" (
         set NewConfigCreated=True
     )
 )
+setlocal DisableDelayedExpansion
 if not defined NewConfigCreated set cluster_name=Stupid trouble with undefined variable below
 
-
-REM 
-REM Config can be specified with full path in command line, we should change working dir.
-REM 
+REM ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+REM :: Config can be specified with full path in command line, so we should change working dir.
+REM ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 cd /D "%WORKING_DIR%"
 
 
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-::  Load parameters from ServerConfigFile into local variables
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-echo. & echo.Trying to load parameters...
-
+REM ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+REM ::  Load parameters from ServerConfigFile into local variables
+REM ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+echo. & echo. & echo.
+echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+echo.::
+echo.::  Trying to load parameters...
+echo.::
+echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+echo. & echo.
 for /f "usebackq delims== tokens=1,2 eol=#" %%a in ("%ServerConfigFile%") do (
-    setlocal DisableDelayedExpansion
     call :setkey %%a
     call :setval %%b
 )
-
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-::  Checking is all required parameters are present in config file
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+REM ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+REM ::  Checking is all required parameters are present in config file
+REM ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 set mandatory_params=DST_steamcmd_dir DST_dst_bin DST_exe DST_persistent_storage_root DST_conf_dir DST_cluster_folder DST_shards DST_my_mods_templates_folder DST_cluster_templates_folder
 setlocal EnableDelayedExpansion
 for %%a in (%mandatory_params%) do (
@@ -194,7 +235,6 @@ for %%a in (%mandatory_params%) do (
         echo.     %ESC%[92m^defined%ESC%[0m  : %ESC%[32m%%a%ESC%[0m %ESC%[46G = !%%a!
     )
 )
-
 echo.
 if defined noargs (
     echo.%ESC%[41m^Additional parameters needed: %noargs%%ESC%[0m 
@@ -208,14 +248,17 @@ setlocal DisableDelayedExpansion
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::  Check for mandatory folders and files
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-echo.
-echo.Checking for required files...
-
+echo. & echo. & echo. & echo.
+echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+echo.::
+echo.::  Checking for required files...
+echo.::
+echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+echo. & echo.
 call :check_and_create_folder "%DST_steamcmd_dir%" confirm || goto :eof
 call :check_and_create_folder "%WORKING_DIR%\%DST_persistent_storage_root%\%DST_conf_dir%" || goto :eof
 
 set file_not_found=
-
 set temp_file_name=%DST_steamcmd_dir%\steamcmd.exe
 call :check_exist "%temp_file_name%"
 
@@ -291,7 +334,7 @@ if not defined check_exist_notfoud (
         call :stupid_echo "%ESC%[32m        Template for mods%ESC%[0m%ESC%[46G : %ESC%[93m!result!%ESC%[0m"
         set selected_mods=%ESC%[0G::::%ESC%[32m  Template for mods%ESC%[0m%ESC%[46G : !result!
 		REM copy lua mods files to working dir (every next run its will be copied to right places)
-        cd !result!
+        cd "!result!"
         setlocal DisableDelayedExpansion
         copy "*.lua"  "%WORKING_DIR%\">nul
     ) 
@@ -313,7 +356,7 @@ if not defined check_exist_notfoud (
         set stupid_cluster_name="%ESC%[0G::::  %ESC%[32mCluster name (showed in servers list) %ESC%[0m%ESC%[46G : %cluster_name%"%ESC%[1D 
     )
     rem setlocal EnableDelayedExpansion 
-    echo. & echo. & echo.   
+    echo. & echo. & echo. & echo. 
     echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     echo.::::
@@ -377,10 +420,13 @@ for /F "usebackq tokens=2,9 delims=," %%p in (`%cmd%`) do (
     setlocal EnableDelayedExpansion
     if not defined first_time_loop (
         set first_time_loop=false
-        echo.
-        echo.%ESC%[41m ----------------------            ATTENTION ^^!^^!^^!           ---------------------- %ESC%[0m
-        echo.%ESC%[41m ----------------------      Running shards found     ---------------------- %ESC%[0m
-        echo.
+        echo. & echo. & echo. & echo.
+        echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        echo.::
+        echo.:: %ESC%[41m ----------------------            ATTENTION ^^!^^!^^!           ---------------------- %ESC%[0m
+        echo.:: %ESC%[41m ----------------------      Running shards found     ---------------------- %ESC%[0m
+        echo.::
+        echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     )
     set pid_with_quotes=%%p
     set pid_without_quotes=!pid_with_quotes:"=!
@@ -406,21 +452,21 @@ if defined pids_list (
     )
 )
 
-REM ==============================================================================
-REM          World backup rotation (5 last pre-run backups stored)
-REM ==============================================================================
+echo. & echo. & echo. & echo. 
+echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+echo.::
+echo.::  World backup rotation (5 last pre-run backups stored)...
+echo.::
+echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+echo. & echo.
 cd /D "%WORKING_DIR%"
 mkdir worldbackup 2>NUL
-
 dir /a:-d /b "worldbackup\%DST_cluster_folder%*.*" 2>NUL | find /c /v "" > "%TEMP%sdstwp"
 set /p backups_count=<"%TEMP%sdstwp"
-echo.
 if %backups_count% EQU 0 ( echo.No existing backups. A new one will be created.  ) else ( echo Existing backups: )
-
 SET count=%backups_count%
 FOR /f "tokens=*" %%G IN ('dir /a:-d /b "worldbackup\%DST_cluster_folder%*.*" 2^>NUL ') DO (call :subroutine "%%G")
 GOTO :after_subroutine
-
 :subroutine
     set /A c_no=%backups_count%-%count%+1
     if %count% LEQ 5 ( 
@@ -431,7 +477,6 @@ GOTO :after_subroutine
     )
     set /a count-=1
     exit /b
-
 :after_subroutine
 
 cd "%DST_persistent_storage_root%"
@@ -442,34 +487,22 @@ set MM=%TIME:~3,2%
 set SS=%TIME:~6,2%
 tar -czf "..\..\worldbackup\%DST_cluster_folder%_%DATE%_%HH%-%MM%-%SS%.tar.gz" "%DST_cluster_folder%"
 
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-::
-:: Start steamcmd.exe for load/update/validate DST application.
-::
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-start "Start steamcmd for load/update/validate DST dedicated server application." cmd /C "%0" /goto NewConsole
-echo. & echo Press any key if you want to leave this console window open
-call :timeout_with_keypress_detect 10
-if defined key_pressed cmd /K
-exit
-
-:NewConsole
+echo. & echo. & echo. & echo. 
+echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+echo.::
+echo.::  Start steamcmd.exe for load/update/validate DST dedicated server application...
+echo.::
+echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+echo. & echo.
 call :StupidCmdBreaksEscSequences
-echo.
-echo.
-echo.Start steamcmd for load/update/validate DST dedicated server application.
-echo.
-echo.
-echo.Press any key to skip load/update/validate game and mods
-echo.^(you will be jumped to shard's load^).
-echo.
+echo.Do not press any key and steamcmd will load/update/validate DST dedicated server application.
+echo. & echo.Or: & echo.
+echo.Press any key TO SKIP load/update/validate game executable ^(you will be jumped to shard's load^).
 echo.%ESC%[93mWarning^!^!^!  Only do this if you are absolutely sure what are you doing!%ESC%[0m
 echo.
-echo.
 call :timeout_with_keypress_detect 15
-if not defined key_pressed (
-    %DST_steamcmd_dir%\steamcmd.exe +login anonymous +app_update 343050 validate +quit
-)
+if not defined key_pressed %DST_steamcmd_dir%\steamcmd.exe +login anonymous +app_update 343050 validate +quit
+
 
 REM ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 REM :: If lua interpreter exists, then dedicated_server_mods_setup.lua will be generated basing on modoverrides.lua
@@ -486,11 +519,15 @@ if "%LUA_use_lua%"=="true" (
 if defined lua_errorlevel_is_zero set "lua_exe=%lua_exe_temp%"
 if defined lua_exe "%lua_exe%" -e "ms=dofile('modoverrides.lua');ds=io.open('dedicated_server_mods_setup.lua','w');for k,v in pairs(ms) do if v.enabled then ds:write('ServerModSetup(\"'..string.sub(k,10)..'\")\n');end;end;ds:close()"
 
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:: Run shards
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+echo. & echo. & echo. & echo.
+echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+echo.::
+echo.::  Run shards...
+echo.::
+echo.::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+echo. & echo.
 cd /D "%DST_steamcmd_dir%/%DST_dst_bin%"
-REM Copy 2 mods files: to dst bin and to cluster shards (inside shards loop)
+echo.Copy mods files to dst bin and to cluster shards...
 copy "%WORKING_DIR%\dedicated_server_mods_setup.lua" ..\mods\
 for %%a in (%DST_shards%) do (
     copy "%WORKING_DIR%\modoverrides.lua"  "%CLUSTER_FOLDER_FULL_PATH%\%%a\"
@@ -525,7 +562,9 @@ for %%a in (%DST_shards%) do (
 
 )
 
-timeout 25
+echo. & echo. & echo. & echo Press any key if you want to leave this console window open
+call :timeout_with_keypress_detect 15
+if defined key_pressed cmd /K
 exit
 
 
